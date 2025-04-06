@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Star, Loader2 } from 'lucide-react';
@@ -57,17 +56,16 @@ const ConsultantCard = ({ consultant, staggerIndex }: ConsultantCardProps) => {
         localStorage.setItem('anonymousId', anonymousId);
       }
       
-      // Create interaction record without linking directly to consultant
-      // This avoids foreign key constraints since consultants aren't in auth.users
+      // Create interaction record
       const { data, error } = await supabase
         .from('interactions')
         .insert({
-          // Don't set helper_id directly as it has a foreign key constraint
           interaction_type: 'text',
           description: `Consultation with ${consultant.name} on ${consultant.industry}`,
           seeker_id: session?.user?.id || null,
           anonymous_seeker_id: session?.user ? null : anonymousId,
-          status: 'pending'
+          status: 'pending',
+          metadata: { consultant_id: consultant.id.toString() }
         })
         .select()
         .single();
