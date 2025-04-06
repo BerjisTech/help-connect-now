@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import Layout from '@/components/Layout';
 import { toast } from 'sonner';
@@ -53,6 +53,7 @@ interface ConsultantData {
 
 const InteractionPage = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const interactionId = searchParams.get('id');
   
   const [interaction, setInteraction] = useState<InteractionData | null>(null);
@@ -246,6 +247,8 @@ const InteractionPage = () => {
             }
           })
           .eq('id', interaction.id);
+          
+        navigate('/browse');
       } catch (error) {
         console.error('Error updating interaction status:', error);
       }
@@ -395,7 +398,7 @@ const InteractionPage = () => {
                     <DialogHeader>
                       <DialogTitle>End this consultation?</DialogTitle>
                       <DialogDescription>
-                        This will stop the timer and close the current interaction. You can leave feedback and rate your consultant afterward.
+                        This will stop the timer and close the current interaction. You will be redirected to the browse page.
                       </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>

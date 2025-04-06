@@ -11,13 +11,11 @@ interface ConsultationTimerProps {
 
 const ConsultationTimer = ({ isRunning, startTime, className }: ConsultationTimerProps) => {
   const [elapsedTime, setElapsedTime] = useState(0);
-  const intervalRef = useRef<number>();
-  const startTimeRef = useRef<string | null>(startTime || null);
+  const intervalRef = useRef<number | null>(null);
   
-  // Initialize timer when startTime is first provided
+  // Reset and initialize timer when startTime changes
   useEffect(() => {
-    if (startTime && startTime !== startTimeRef.current) {
-      startTimeRef.current = startTime;
+    if (startTime) {
       const startTimeMs = new Date(startTime).getTime();
       const now = Date.now();
       const initialElapsed = Math.floor((now - startTimeMs) / 1000);
@@ -29,28 +27,34 @@ const ConsultationTimer = ({ isRunning, startTime, className }: ConsultationTime
       });
       
       setElapsedTime(initialElapsed > 0 ? initialElapsed : 0);
+    } else {
+      setElapsedTime(0);
     }
   }, [startTime]);
   
-  // Handle the timer interval
+  // Handle timer interval
   useEffect(() => {
-    // Always clear the existing interval first
+    // Clear any existing interval
     if (intervalRef.current) {
-      console.log('Clearing previous timer interval:', intervalRef.current);
       clearInterval(intervalRef.current);
-      intervalRef.current = undefined;
+      intervalRef.current = null;
     }
     
-    if (isRunning && startTimeRef.current) {
-      console.log('Starting timer, isRunning =', isRunning);
+    if (isRunning && startTime) {
+      console.log('Starting timer interval, isRunning =', isRunning);
       
-      // Create a new interval with a captured reference to the current elapsed time
-      const currentTime = elapsedTime;
-      const startTs = Date.now() - (currentTime * 1000);
-      
+      // Set up a new interval
       intervalRef.current = window.setInterval(() => {
-        const newElapsed = Math.floor((Date.now() - startTs) / 1000);
-        setElapsedTime(newElapsed);
+        const startTimeMs = new Date(startTime).getTime();
+        const now = Date.now();
+        const newElapsed = Math.floor((now - startTimeMs) / 1000);
+        setElapsedTime(prev => {
+          // Log if there are significant jumps in time
+          if (Math.abs(newElapsed - prev) > 2) {
+            console.log('Timer update:', { prev, newElapsed, diff: newElapsed - prev });
+          }
+          return newElapsed > 0 ? newElapsed : 0;
+        });
       }, 1000);
       
       console.log('Timer started with interval ID:', intervalRef.current);
@@ -63,10 +67,10 @@ const ConsultationTimer = ({ isRunning, startTime, className }: ConsultationTime
       if (intervalRef.current) {
         console.log('Cleaning up timer interval on effect cleanup:', intervalRef.current);
         clearInterval(intervalRef.current);
-        intervalRef.current = undefined;
+        intervalRef.current = null;
       }
     };
-  }, [isRunning, startTimeRef.current]); // Only recreate interval when isRunning changes
+  }, [isRunning, startTime]); // Depend on both isRunning and startTime
   
   const formatTime = (seconds: number): string => {
     const hours = Math.floor(seconds / 3600);
@@ -83,7 +87,7 @@ const ConsultationTimer = ({ isRunning, startTime, className }: ConsultationTime
   };
   
   return (
-    <div className={cn("flex items-center gap-2 text-sm font-medium", className)}>
+    <div className={cn("flex items-center gap-2 text-sm font-medium", className)} data-testid="consultation-timer">
       <Timer className="h-4 w-4" />
       <span data-testid="timer-value">{formatTime(elapsedTime)}</span>
     </div>
