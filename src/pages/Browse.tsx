@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -100,7 +99,6 @@ const Browse = () => {
       }
 
       if (data && Array.isArray(data) && data.length > 0) {
-        // Transform the data to our Consultant format
         const formattedConsultants = data.map((item: any) => ({
           id: item.id,
           name: item.display_name,
@@ -144,7 +142,6 @@ const Browse = () => {
 
   const initiateInteraction = async (helperId: string, type: 'video' | 'audio' | 'text') => {
     try {
-      // Create an interaction between the helper and the user (anonymous or authenticated)
       const { data: user } = await supabase.auth.getUser();
       
       const interactionData: any = {
@@ -175,8 +172,6 @@ const Browse = () => {
       
       toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} interaction initiated!`);
       
-      // In a real app, we would redirect to the interaction page here
-      // For now, let's just show a success message
     } catch (error) {
       console.error('Error initiating interaction:', error);
       toast.error('Failed to start interaction');
@@ -213,7 +208,7 @@ const Browse = () => {
                 <SelectValue placeholder="Filter by Industry" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Industries</SelectItem>
+                <SelectItem value="all">All Industries</SelectItem>
                 <SelectItem value="Technology">Technology</SelectItem>
                 <SelectItem value="Finance">Finance</SelectItem>
                 <SelectItem value="Healthcare">Healthcare</SelectItem>
