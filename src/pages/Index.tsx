@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
@@ -44,9 +44,34 @@ const consultants = [
   }
 ];
 
+// Array of ambient background gradient styles
+const backgroundStyles = [
+  'bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-400',
+  'bg-gradient-to-r from-indigo-600 via-indigo-400 to-purple-500',
+  'bg-gradient-to-r from-purple-600 via-indigo-500 to-indigo-400',
+  'bg-gradient-to-r from-indigo-500 via-purple-400 to-pink-400',
+  'bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500',
+];
+
 const Index = () => {
   const [problemDescription, setProblemDescription] = useState('');
+  const [currentBgIndex, setCurrentBgIndex] = useState(0);
   const navigate = useNavigate();
+
+  // Effect for changing background at random intervals
+  useEffect(() => {
+    const changeBackground = () => {
+      setCurrentBgIndex(prev => (prev + 1) % backgroundStyles.length);
+      
+      // Random interval between 5-12 seconds
+      const nextInterval = Math.floor(Math.random() * (12000 - 5000) + 5000);
+      setTimeout(changeBackground, nextInterval);
+    };
+    
+    const initialTimeout = setTimeout(changeBackground, 7000); // Initial change after 7 seconds
+    
+    return () => clearTimeout(initialTimeout);
+  }, []);
 
   const handleAnonymousHelp = async () => {
     if (!problemDescription.trim()) {
@@ -70,17 +95,17 @@ const Index = () => {
 
   return (
     <Layout>
-      {/* Hero Section with Animated Background */}
+      {/* Hero Section with Dynamic Animated Background */}
       <section className="py-24 relative overflow-hidden">
-        <div className="absolute inset-0 animated-gradient opacity-10"></div>
+        <div className={`absolute inset-0 ${backgroundStyles[currentBgIndex]} opacity-10 transition-all duration-3000`}></div>
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxwYXR0ZXJuIGlkPSJwYXR0ZXJuIiB4PSIwIiB5PSIwIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHBhdHRlcm5UcmFuc2Zvcm09InJvdGF0ZSg0NSkiPjxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbD0icmdiYSg5OSwxMDIsMjQxLDAuMDMpIj48L3JlY3Q+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI3BhdHRlcm4pIj48L3JlY3Q+PC9zdmc+')] opacity-30"></div>
         
         <div className="absolute w-64 h-64 rounded-full bg-indigo-300/20 -top-10 -left-10 blur-3xl animate-pulse-soft"></div>
         <div className="absolute w-96 h-96 rounded-full bg-indigo-500/10 bottom-0 right-0 blur-3xl animate-pulse-soft animation-delay-2000"></div>
         
         <div className="container mx-auto px-4 relative z-10">
-          <div className="flex flex-col items-center">
-            <div className="max-w-3xl mx-auto text-center space-y-8 mb-10">
+          <div className="flex flex-col items-end"> {/* Changed to items-end for right alignment */}
+            <div className="max-w-3xl text-right space-y-8 mb-10"> {/* Changed to text-right */}
               <h1 className="text-5xl md:text-6xl font-bold text-primary leading-tight">
                 Connect with Expert Consultants in Minutes
               </h1>
@@ -89,7 +114,7 @@ const Index = () => {
               </p>
             </div>
             
-            <div className="w-full max-w-2xl mx-auto space-y-6 pt-4">
+            <div className="w-full max-w-2xl ml-auto space-y-6 pt-4"> {/* Added ml-auto to align to right */}
               <Input
                 placeholder="Describe what you need help with..."
                 className="text-lg py-6 border-indigo-200 focus:border-indigo-500 shadow-sm"
@@ -114,21 +139,28 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Featured Consultants Section */}
+      {/* Featured Consultants Section with Staggered Heights */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
+          <div className="text-right mb-12"> {/* Changed to text-right */}
             <h2 className="text-3xl md:text-4xl font-bold text-indigo-600 mb-4">Top Consultants Ready to Help</h2>
-            <p className="text-xl text-indigo-900/70 max-w-3xl mx-auto">
+            <p className="text-xl text-indigo-900/70 max-w-3xl ml-auto"> {/* Added ml-auto to align to right */}
               Our platform connects you with verified experts across industries
             </p>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {consultants.map((consultant) => (
+          {/* Consultant cards with staggered heights */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-16"> {/* Added margin-top for staggered effect */}
+            {consultants.map((consultant, index) => (
               <div 
                 key={consultant.id} 
-                className="relative h-96 rounded-xl overflow-hidden shadow-lg group transition-all duration-300 hover:-translate-y-2"
+                className={`relative h-96 rounded-xl overflow-hidden shadow-lg group transition-all duration-300 hover:-translate-y-2 ${
+                  // Apply different top margins based on index to create staggered heights
+                  index === 0 ? '-mt-16' : 
+                  index === 1 ? '-mt-8' : 
+                  index === 2 ? 'mt-0' : 
+                  'mt-8'
+                }`}
               >
                 <div 
                   className="absolute inset-0 bg-cover bg-center z-0" 

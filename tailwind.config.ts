@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -130,6 +129,9 @@ export default {
 				'gradient-x': 'gradient-x 15s ease infinite',
 				'gradient-y': 'gradient-y 15s ease infinite',
 				'pulse-soft': 'pulse-soft 4s ease-in-out infinite',
+			},
+			transitionDuration: {
+				'3000': '3000ms',
 			}
 		}
 	},
