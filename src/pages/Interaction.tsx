@@ -90,6 +90,18 @@ const InteractionPage = () => {
       };
       
       setInteraction(safeInteractionData);
+      
+      if (safeInteractionData.status === 'active') {
+        const storedStartTime = safeInteractionData.metadata?.session_start_time;
+        
+        if (storedStartTime) {
+          console.log('Found existing session start time:', storedStartTime);
+          setSessionStartTime(storedStartTime);
+          setTimerRunning(true);
+        } else {
+          console.log('No session start time found, will create one when timer runs');
+        }
+      }
 
       if (safeInteractionData?.metadata?.consultant_id) {
         const { data: consultantData, error: consultantError } = await supabase
@@ -133,6 +145,7 @@ const InteractionPage = () => {
         
         if (!sessionStartTime) {
           const now = new Date().toISOString();
+          console.log('Creating new session start time:', now);
           setSessionStartTime(now);
           
           updateInteractionStartTime(now);
@@ -142,18 +155,22 @@ const InteractionPage = () => {
   }, [interaction, timerRunning, sessionStartTime]);
 
   const updateInteractionStartTime = async (startTime: string) => {
-    if (!interactionId) return;
+    if (!interactionId || !interaction) return;
     
     try {
+      console.log('Updating interaction start time:', startTime);
+      
       await supabase
         .from('interactions')
         .update({
           metadata: {
-            ...interaction?.metadata,
+            ...interaction.metadata,
             session_start_time: startTime
           }
         })
         .eq('id', interactionId);
+        
+      console.log('Interaction start time updated successfully');
     } catch (error) {
       console.error('Error updating interaction start time:', error);
     }
@@ -286,7 +303,7 @@ const InteractionPage = () => {
                   </div>
                   <ConsultationTimer 
                     isRunning={timerRunning}
-                    startTime={interaction.metadata?.session_start_time || sessionStartTime}
+                    startTime={sessionStartTime}
                     className="bg-secondary/40 px-2 py-1 rounded-md"
                   />
                 </div>
