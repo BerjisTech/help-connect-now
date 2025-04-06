@@ -6,19 +6,10 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
-
-export interface Consultant {
-  id: number | string;
-  name: string;
-  industry: string;
-  rating: number;
-  image: string;
-  expertise: string[];
-  availability?: string;
-}
+import { ConsultantData } from '../interaction/types';
 
 interface ConsultantCardProps {
-  consultant: Consultant;
+  consultant: ConsultantData;
   staggerIndex: number;
 }
 
@@ -103,7 +94,7 @@ const ConsultantCard = ({ consultant, staggerIndex }: ConsultantCardProps) => {
     >
       <div 
         className="absolute inset-0 bg-cover bg-center z-0" 
-        style={{ backgroundImage: `url(${consultant.image})` }}
+        style={{ backgroundImage: `url(${consultant.avatar_url})` }}
       />
       <div className={`absolute inset-0 z-10 ${getAvailabilityClass()}`} />
       <div className="absolute bottom-0 left-0 right-0 p-6 z-20 text-white">

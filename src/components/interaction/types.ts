@@ -17,10 +17,14 @@ export interface InteractionData {
 export interface ConsultantData {
   id: string;
   display_name: string;
-  avatar_url?: string;
+  name: string;
   bio?: string;
-  industry?: string;
   expertise?: string[];
+  industry: string;
+  rating: number;
+  avatar_url: string;
+  availability?: string;
+  allowAnonymous?: boolean;
 }
 
 export interface MessageData {

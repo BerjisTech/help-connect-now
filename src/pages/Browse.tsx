@@ -10,7 +10,8 @@ import { FilterBar } from '@/components/browse/FilterBar';
 import { ProblemCard } from '@/components/browse/ProblemCard';
 import { ConsultantsSection } from '@/components/browse/ConsultantsSection';
 import { HelpersSection } from '@/components/browse/HelpersSection';
-import { Profile, Consultant } from '@/components/browse/types';
+import { Profile } from '@/components/browse/types';
+import { ConsultantData } from '@/components/interaction/types';
 
 const Browse = () => {
   const [searchParams] = useSearchParams();
@@ -20,7 +21,7 @@ const Browse = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [industry, setIndustry] = useState<string>('');
   const [helpers, setHelpers] = useState<Profile[]>([]);
-  const [consultants, setConsultants] = useState<Consultant[]>([]);
+  const [consultants, setConsultants] = useState<ConsultantData[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
 
@@ -66,15 +67,15 @@ const Browse = () => {
       }
 
       if (data && Array.isArray(data) && data.length > 0) {
-        const formattedConsultants = data.map((item: any) => ({
+        const formattedConsultants: ConsultantData[] = data.map((item: any) => ({
           id: item.id,
           name: item.display_name,
+          display_name: item.display_name,
           industry: item.industry || 'Consultant',
           rating: item.rating || 4.5,
-          image: item.avatar_url || `https://images.unsplash.com/photo-${Math.floor(Math.random() * 1000000)}?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80`,
+          avatar_url: item.avatar_url || `https://images.unsplash.com/photo-${Math.floor(Math.random() * 1000000)}?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80`,
           expertise: item.expertise || ['Consulting'],
-          availability: item.availability,
-          allowAnonymous: item.allow_anonymous !== undefined ? item.allow_anonymous : Math.random() > 0.3 // For demo purposes, randomly allow anonymous for some consultants
+          availability: item.availability
         }));
         
         setConsultants(formattedConsultants);

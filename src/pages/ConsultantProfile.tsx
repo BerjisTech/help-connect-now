@@ -134,10 +134,13 @@ const ConsultantProfile = () => {
           setConsultant({
             id: consultantData.id || id,
             display_name: consultantData.display_name || 'Consultant',
+            name: consultantData.display_name || 'Consultant',
             avatar_url: consultantData.avatar_url,
             bio: consultantData.bio || '',
             industry: consultantData.industry || '',
-            expertise: consultantData.expertise || []
+            expertise: consultantData.expertise || [],
+            rating: consultantData.rating || 4.5,
+            availability: consultantData.availability || 'available',
           });
           
           // Try to get stored profile config

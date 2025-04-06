@@ -12,21 +12,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Consultant } from './types';
 import { AuthModal } from './AuthModal';
 import { supabase } from '@/integrations/supabase/client';
+import { ConsultantData } from '../interaction/types';
 
 interface ConsultantsTableProps {
-  consultants: Consultant[];
+  consultants: ConsultantData[];
   onInteraction: (id: string, type: 'video' | 'audio' | 'text') => void;
 }
 
 export const ConsultantsTable = ({ consultants, onInteraction }: ConsultantsTableProps) => {
   const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [selectedConsultant, setSelectedConsultant] = useState<Consultant | null>(null);
+  const [selectedConsultant, setSelectedConsultant] = useState<ConsultantData | null>(null);
   const [interactionType, setInteractionType] = useState<'video' | 'audio' | 'text' | null>(null);
 
-  const checkAuth = async (consultant: Consultant, type: 'video' | 'audio' | 'text') => {
+  const checkAuth = async (consultant: ConsultantData, type: 'video' | 'audio' | 'text') => {
     const { data } = await supabase.auth.getUser();
     const isAuthenticated = !!data.user;
     
@@ -39,7 +39,7 @@ export const ConsultantsTable = ({ consultants, onInteraction }: ConsultantsTabl
     }
   };
 
-  const handleInteractionClick = (consultant: Consultant, type: 'video' | 'audio' | 'text') => {
+  const handleInteractionClick = (consultant: ConsultantData, type: 'video' | 'audio' | 'text') => {
     checkAuth(consultant, type);
   };
 
@@ -70,7 +70,7 @@ export const ConsultantsTable = ({ consultants, onInteraction }: ConsultantsTabl
                 <TableCell className="font-medium">
                   <div className="flex items-center gap-2 dark:text-accent">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={consultant.image} />
+                      <AvatarImage src={consultant.avatar_url} />
                       <AvatarFallback>{consultant.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                     {consultant.name}

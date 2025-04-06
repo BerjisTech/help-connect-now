@@ -11,12 +11,12 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Consultant } from './types';
+import { ConsultantData } from '../interaction/types';
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  consultant: Consultant | null;
+  consultant: ConsultantData | null;
   interactionType: 'video' | 'audio' | 'text' | null;
   onProceedAnonymously: () => void;
 }

@@ -3,47 +3,54 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import ConsultantCard, { Consultant } from './ConsultantCard';
+import ConsultantCard from './ConsultantCard';
 import { supabase } from '@/integrations/supabase/client';
+import { ConsultantData } from '../interaction/types';
 
 // Fallback consultant data (in case no consultants are found in the database)
-const fallbackConsultants: Consultant[] = [
+const fallbackConsultants: ConsultantData[] = [
   {
-    id: 1,
+    id: '1',
     name: 'Sarah Johnson',
+    display_name: 'Sarah Johnson',
     industry: 'Marketing',
     rating: 4.9,
-    image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    expertise: ['Digital Marketing', 'Brand Strategy']
+    avatar_url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    expertise: ['Digital Marketing', 'Brand Strategy'],
+    availability: 'available'
+
   },
   {
-    id: 2,
+    id: '2',
     name: 'Michael Chen',
+    display_name: 'Michael Chen',
     industry: 'Finance',
     rating: 4.8,
-    image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    avatar_url: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
     expertise: ['Investment', 'Financial Planning']
   },
   {
-    id: 3,
+    id: '3',
     name: 'Priya Patel',
+    display_name: 'Priya Patel',
     industry: 'Technology',
     rating: 4.7,
-    image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    avatar_url: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
     expertise: ['Software Development', 'UX Design']
   },
   {
-    id: 4,
+    id: '4',
     name: 'James Wilson',
+    display_name: 'James Wilson',
     industry: 'Business',
     rating: 4.8,
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
     expertise: ['Strategy', 'Operations']
   }
 ];
 
 const ConsultantsSection = () => {
-  const [consultants, setConsultants] = useState<Consultant[]>([]);
+  const [consultants, setConsultants] = useState<ConsultantData[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -56,14 +63,17 @@ const ConsultantsSection = () => {
           throw error;
         }
 
+        console.log(data)
+
         if (data && Array.isArray(data) && data.length > 0) {
           // Transform the data to our Consultant format
-          const formattedConsultants = data.map((item: any) => ({
+          const formattedConsultants: ConsultantData[] = data.map((item: any) => ({
             id: item.id,
             name: item.display_name,
+            display_name: item.display_name,
             industry: item.industry || 'Consultant',
             rating: item.rating || 4.5,
-            image: item.avatar_url || `https://images.unsplash.com/photo-${Math.floor(Math.random() * 1000000)}?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80`,
+            avatar_url: item.avatar_url || `https://images.unsplash.com/photo-${Math.floor(Math.random() * 1000000)}?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80`,
             expertise: item.expertise || ['Consulting'],
             availability: item.availability
           }));
@@ -104,7 +114,7 @@ const ConsultantsSection = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-16">
             {consultants.map((consultant, index) => (
               <ConsultantCard 
-                key={typeof consultant.id === 'string' ? consultant.id : consultant.id.toString()} 
+                key={typeof consultant.id === 'string' ? consultant.id : consultant.id} 
                 consultant={consultant} 
                 staggerIndex={index % 4}
               />

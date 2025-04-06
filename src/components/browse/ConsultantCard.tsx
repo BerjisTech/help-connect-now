@@ -12,12 +12,12 @@ import {
   CardContent, 
   CardFooter
 } from '@/components/ui/card';
-import { Consultant } from './types';
 import { AuthModal } from './AuthModal';
 import { supabase } from '@/integrations/supabase/client';
+import { ConsultantData } from '../interaction/types';
 
 interface ConsultantCardProps {
-  consultant: Consultant;
+  consultant: ConsultantData
   onInteraction: (id: string, type: 'video' | 'audio' | 'text') => void;
 }
 
@@ -68,7 +68,7 @@ export const ConsultantCard = ({ consultant, onInteraction }: ConsultantCardProp
       >
         <div className="h-48 relative">
           <img 
-            src={consultant.image} 
+            src={consultant.avatar_url} 
             alt={consultant.name}
             className="w-full h-full object-cover"
           />
