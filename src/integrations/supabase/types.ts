@@ -9,7 +9,181 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      interactions: {
+        Row: {
+          anonymous_seeker_id: string | null
+          created_at: string
+          description: string | null
+          ended_at: string | null
+          helper_id: string | null
+          id: string
+          interaction_type: Database["public"]["Enums"]["interaction_type"]
+          is_active: boolean | null
+          seeker_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          anonymous_seeker_id?: string | null
+          created_at?: string
+          description?: string | null
+          ended_at?: string | null
+          helper_id?: string | null
+          id?: string
+          interaction_type: Database["public"]["Enums"]["interaction_type"]
+          is_active?: boolean | null
+          seeker_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          anonymous_seeker_id?: string | null
+          created_at?: string
+          description?: string | null
+          ended_at?: string | null
+          helper_id?: string | null
+          id?: string
+          interaction_type?: Database["public"]["Enums"]["interaction_type"]
+          is_active?: boolean | null
+          seeker_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          anonymous_sender_id: string | null
+          content: string
+          created_at: string
+          id: string
+          interaction_id: string
+          is_read: boolean | null
+          sender_id: string | null
+        }
+        Insert: {
+          anonymous_sender_id?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          interaction_id: string
+          is_read?: boolean | null
+          sender_id?: string | null
+        }
+        Update: {
+          anonymous_sender_id?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          interaction_id?: string
+          is_read?: boolean | null
+          sender_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_interaction_id_fkey"
+            columns: ["interaction_id"]
+            isOneToOne: false
+            referencedRelation: "interactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          availability: Database["public"]["Enums"]["availability_status"]
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          display_name: string
+          expertise: string[] | null
+          first_name: string | null
+          hourly_rate: number | null
+          id: string
+          industry: string | null
+          last_name: string | null
+          rating: number | null
+          review_count: number | null
+          updated_at: string
+          user_type: Database["public"]["Enums"]["user_type"]
+        }
+        Insert: {
+          availability?: Database["public"]["Enums"]["availability_status"]
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name: string
+          expertise?: string[] | null
+          first_name?: string | null
+          hourly_rate?: number | null
+          id: string
+          industry?: string | null
+          last_name?: string | null
+          rating?: number | null
+          review_count?: number | null
+          updated_at?: string
+          user_type?: Database["public"]["Enums"]["user_type"]
+        }
+        Update: {
+          availability?: Database["public"]["Enums"]["availability_status"]
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string
+          expertise?: string[] | null
+          first_name?: string | null
+          hourly_rate?: number | null
+          id?: string
+          industry?: string | null
+          last_name?: string | null
+          rating?: number | null
+          review_count?: number | null
+          updated_at?: string
+          user_type?: Database["public"]["Enums"]["user_type"]
+        }
+        Relationships: []
+      }
+      reviews: {
+        Row: {
+          anonymous_reviewer_id: string | null
+          comment: string | null
+          created_at: string
+          id: string
+          interaction_id: string
+          rating: number
+          reviewed_user_id: string
+          reviewer_id: string | null
+        }
+        Insert: {
+          anonymous_reviewer_id?: string | null
+          comment?: string | null
+          created_at?: string
+          id?: string
+          interaction_id: string
+          rating: number
+          reviewed_user_id: string
+          reviewer_id?: string | null
+        }
+        Update: {
+          anonymous_reviewer_id?: string | null
+          comment?: string | null
+          created_at?: string
+          id?: string
+          interaction_id?: string
+          rating?: number
+          reviewed_user_id?: string
+          reviewer_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_interaction_id_fkey"
+            columns: ["interaction_id"]
+            isOneToOne: false
+            referencedRelation: "interactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +192,9 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      availability_status: "available" | "busy" | "offline"
+      interaction_type: "video" | "audio" | "text"
+      user_type: "helper" | "seeker"
     }
     CompositeTypes: {
       [_ in never]: never
