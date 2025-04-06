@@ -32,10 +32,13 @@ interface InteractionData {
   status: string;
   interaction_type: 'video' | 'audio' | 'text';
   description: string;
-  metadata: any;
+  metadata: any; // This field is required by our interface
   seeker_id?: string;
   helper_id?: string;
   anonymous_seeker_id?: string;
+  ended_at?: string;
+  is_active?: boolean;
+  updated_at?: string;
 }
 
 interface ConsultantData {
@@ -75,14 +78,21 @@ const InteractionPage = () => {
         .single();
 
       if (interactionError) throw interactionError;
-      setInteraction(interactionData);
+      
+      // Ensure interactionData has a metadata field, even if it's null
+      const safeInteractionData: InteractionData = {
+        ...interactionData,
+        metadata: interactionData.metadata || {}
+      };
+      
+      setInteraction(safeInteractionData);
 
       // Fetch consultant data using the consultant_id from metadata
-      if (interactionData?.metadata?.consultant_id) {
+      if (safeInteractionData?.metadata?.consultant_id) {
         const { data: consultantData, error: consultantError } = await supabase
           .from('consultants')
           .select('*')
-          .eq('id', interactionData.metadata.consultant_id)
+          .eq('id', safeInteractionData.metadata.consultant_id)
           .single();
 
         if (consultantError) {

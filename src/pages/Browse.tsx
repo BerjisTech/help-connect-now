@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -112,12 +111,11 @@ const Browse = () => {
     try {
       const { data: user } = await supabase.auth.getUser();
       
-      // Create interaction data without setting helper_id directly
-      // to avoid the foreign key constraint
       const interactionData: any = {
         interaction_type: type,
         description: description || `Interaction with consultant ${consultantId}`,
-        status: 'pending'
+        status: 'pending',
+        metadata: { consultant_id: consultantId }
       };
       
       if (user.user) {
@@ -125,23 +123,16 @@ const Browse = () => {
       } else if (anonymousId) {
         interactionData.anonymous_seeker_id = anonymousId;
       } else {
-        // Generate a new anonymous ID if the user is not logged in and no anonymous ID exists
         const newAnonymousId = Math.random().toString(36).substring(2, 15);
         interactionData.anonymous_seeker_id = newAnonymousId;
         
-        // Store the anonymous ID in localStorage for future use
         localStorage.setItem('anonymousId', newAnonymousId);
         
-        // Add the anonymous ID to the URL for future visits
         const currentParams = new URLSearchParams(window.location.search);
         currentParams.set('anonymous', newAnonymousId);
         const newUrl = `${window.location.pathname}?${currentParams.toString()}`;
         window.history.pushState({}, '', newUrl);
       }
-      
-      // Store the consultant ID in a metadata field rather than helper_id
-      // to avoid foreign key constraint
-      interactionData.metadata = { consultant_id: consultantId };
       
       const { data, error } = await supabase
         .from('interactions')
@@ -156,7 +147,6 @@ const Browse = () => {
       
       toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} interaction initiated!`);
       
-      // Redirect to the interaction page
       window.location.href = `/interaction?id=${data.id}`;
       
     } catch (error) {
