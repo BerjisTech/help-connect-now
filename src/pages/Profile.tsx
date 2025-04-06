@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -29,7 +30,6 @@ import { Database } from '@/integrations/supabase/types';
 type Profile = Database['public']['Tables']['profiles']['Row'];
 type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
 type Availability = Database['public']['Enums']['availability_status'];
-type UserType = Database['public']['Enums']['user_type'];
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -45,9 +45,10 @@ const Profile = () => {
   const [industry, setIndustry] = useState('');
   const [expertiseInput, setExpertiseInput] = useState('');
   const [expertise, setExpertise] = useState<string[]>([]);
-  const [isHelper, setIsHelper] = useState(false);
+  const [isConsultant, setIsConsultant] = useState(false);
   const [hourlyRate, setHourlyRate] = useState('');
   const [availability, setAvailability] = useState<Availability>('offline');
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     checkUser();
@@ -92,8 +93,17 @@ const Profile = () => {
         setBio(data.bio || '');
         setIndustry(data.industry || '');
         setExpertise(data.expertise || []);
-        setIsHelper(data.user_type === 'helper');
-        setHourlyRate(data.hourly_rate?.toString() || '');
+        setIsAdmin(data.is_admin || false);
+        
+        // Check if user exists in consultants table
+        const { data: consultantData } = await supabase
+          .from('consultants')
+          .select('*')
+          .eq('id', userId)
+          .maybeSingle();
+          
+        setIsConsultant(!!consultantData);
+        setHourlyRate(consultantData?.hourly_rate?.toString() || '');
         setAvailability(data.availability || 'offline');
       }
     } catch (error) {
@@ -128,8 +138,7 @@ const Profile = () => {
         return;
       }
       
-      const userType: UserType = isHelper ? 'helper' : 'seeker';
-      
+      // Update profile in profiles table
       const updates: ProfileUpdate = {
         id: user.id,
         first_name: firstName,
@@ -138,8 +147,6 @@ const Profile = () => {
         bio,
         industry,
         expertise,
-        user_type: userType,
-        hourly_rate: hourlyRate ? parseFloat(hourlyRate) : null,
         availability,
       };
       
@@ -150,6 +157,45 @@ const Profile = () => {
       
       if (error) {
         throw error;
+      }
+
+      // Handle consultant status
+      if (isConsultant) {
+        // Upsert to consultants table
+        const { error: consultantError } = await supabase
+          .from('consultants')
+          .upsert({
+            id: user.id,
+            display_name: displayName || 'User',
+            avatar_url: profile?.avatar_url,
+            bio,
+            industry,
+            expertise,
+            hourly_rate: hourlyRate ? parseFloat(hourlyRate) : null,
+            availability
+          });
+          
+        if (consultantError) {
+          throw consultantError;
+        }
+      } else {
+        // Check if entry exists in consultants table and remove if needed
+        const { data: existingConsultant } = await supabase
+          .from('consultants')
+          .select('id')
+          .eq('id', user.id)
+          .maybeSingle();
+          
+        if (existingConsultant) {
+          const { error: deleteError } = await supabase
+            .from('consultants')
+            .delete()
+            .eq('id', user.id);
+            
+          if (deleteError) {
+            throw deleteError;
+          }
+        }
       }
       
       toast.success('Profile updated successfully');
@@ -191,8 +237,9 @@ const Profile = () => {
                   <CardTitle className="text-xl">
                     {displayName || 'New User'}
                   </CardTitle>
-                  <CardDescription>
-                    {profile?.user_type === 'helper' ? 'Helper' : 'Help Seeker'}
+                  <CardDescription className="flex items-center gap-2">
+                    {isConsultant && <span className="text-green-600 font-medium">Consultant</span>}
+                    {isAdmin && <span className="bg-purple-100 text-purple-800 text-xs px-2 py-0.5 rounded-full">Admin</span>}
                   </CardDescription>
                 </div>
               </div>
@@ -302,17 +349,17 @@ const Profile = () => {
               <div className="pt-4 border-t">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-medium">Register as Helper</h3>
+                    <h3 className="font-medium">Register as Consultant</h3>
                     <p className="text-sm text-gray-500">Make yourself available to help others</p>
                   </div>
                   <Switch
-                    checked={isHelper}
-                    onCheckedChange={setIsHelper}
+                    checked={isConsultant}
+                    onCheckedChange={setIsConsultant}
                   />
                 </div>
               </div>
               
-              {isHelper && (
+              {isConsultant && (
                 <>
                   <div className="space-y-2">
                     <Label htmlFor="hourlyRate">Hourly Rate (USD)</Label>
@@ -331,7 +378,7 @@ const Profile = () => {
                     <Label htmlFor="availability">Availability</Label>
                     <Select 
                       value={availability} 
-                      onValueChange={(value) => setAvailability(value as any)}
+                      onValueChange={(value) => setAvailability(value as Availability)}
                     >
                       <SelectTrigger id="availability">
                         <SelectValue placeholder="Set your availability" />
@@ -344,6 +391,20 @@ const Profile = () => {
                     </Select>
                   </div>
                 </>
+              )}
+
+              {isAdmin && (
+                <div className="mt-6 p-4 bg-purple-50 rounded-lg border border-purple-100">
+                  <h3 className="text-lg font-semibold text-purple-800 mb-2">Admin Controls</h3>
+                  <p className="text-sm text-purple-700 mb-3">You have admin privileges.</p>
+                  <Button 
+                    variant="outline" 
+                    className="bg-white hover:bg-purple-50 text-purple-700 border-purple-300"
+                    onClick={() => navigate('/dashboard')}
+                  >
+                    Go to Admin Dashboard
+                  </Button>
+                </div>
               )}
             </CardContent>
             

@@ -149,6 +149,7 @@ export type Database = {
           hourly_rate: number | null
           id: string
           industry: string | null
+          is_admin: boolean | null
           last_name: string | null
           rating: number | null
           review_count: number | null
@@ -166,6 +167,7 @@ export type Database = {
           hourly_rate?: number | null
           id: string
           industry?: string | null
+          is_admin?: boolean | null
           last_name?: string | null
           rating?: number | null
           review_count?: number | null
@@ -183,6 +185,7 @@ export type Database = {
           hourly_rate?: number | null
           id?: string
           industry?: string | null
+          is_admin?: boolean | null
           last_name?: string | null
           rating?: number | null
           review_count?: number | null
