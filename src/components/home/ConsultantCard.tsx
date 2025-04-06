@@ -1,6 +1,7 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Star, Loader2 } from 'lucide-react';
+import { ArrowRight, Star, Loader2, MessageSquare, Video } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,6 +24,7 @@ interface ConsultantCardProps {
 
 const ConsultantCard = ({ consultant, staggerIndex }: ConsultantCardProps) => {
   const [connecting, setConnecting] = useState(false);
+  const [interactionType, setInteractionType] = useState<'video' | 'text'>('text');
   const navigate = useNavigate();
 
   // Apply different top margins based on index to create staggered heights
@@ -43,7 +45,8 @@ const ConsultantCard = ({ consultant, staggerIndex }: ConsultantCardProps) => {
     }
   };
 
-  const handleConnectNow = async () => {
+  const handleConnectNow = async (type: 'video' | 'text') => {
+    setInteractionType(type);
     setConnecting(true);
     
     try {
@@ -60,7 +63,7 @@ const ConsultantCard = ({ consultant, staggerIndex }: ConsultantCardProps) => {
       const { data, error } = await supabase
         .from('interactions')
         .insert({
-          interaction_type: 'text',
+          interaction_type: type,
           description: `Consultation with ${consultant.name} on ${consultant.industry}`,
           seeker_id: session?.user?.id || null,
           anonymous_seeker_id: session?.user ? null : anonymousId,
@@ -72,13 +75,8 @@ const ConsultantCard = ({ consultant, staggerIndex }: ConsultantCardProps) => {
         
       if (error) throw error;
       
-      // Redirect based on authentication status
-      if (session?.user) {
-        navigate(`/dashboard?interaction=${data.id}`);
-      } else {
-        navigate(`/browse?anonymous=${anonymousId}&interaction=${data.id}`);
-      }
-      
+      // Redirect to interaction page
+      navigate(`/interaction?id=${data.id}`);
       toast.success(`Connecting you with ${consultant.name}`);
     } catch (error) {
       console.error('Error connecting with consultant:', error);
@@ -128,28 +126,49 @@ const ConsultantCard = ({ consultant, staggerIndex }: ConsultantCardProps) => {
             </span>
           ))}
         </div>
-        <Button 
-          size="sm" 
-          onClick={handleConnectNow}
-          disabled={connecting || isOffline}
-          className={`w-full ${
-            isOffline 
-              ? 'bg-gray-500 cursor-not-allowed' 
-              : 'bg-indigo-500 hover:bg-indigo-600 group-hover:bg-indigo-500'
-          }`}
-        >
-          {connecting ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-1 animate-spin" /> Connecting...
-            </>
-          ) : isOffline ? (
-            'Currently Offline'
-          ) : (
-            <>
-              Connect Now <ArrowRight className="w-4 h-4 ml-1" />
-            </>
-          )}
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            size="sm" 
+            onClick={() => handleConnectNow('video')}
+            disabled={connecting || isOffline}
+            className={`flex-1 ${
+              isOffline 
+                ? 'bg-gray-500 cursor-not-allowed' 
+                : 'bg-indigo-500 hover:bg-indigo-600'
+            }`}
+          >
+            {connecting && interactionType === 'video' ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-1 animate-spin" /> Connecting...
+              </>
+            ) : (
+              <>
+                <Video className="w-4 h-4 mr-1" /> Video Call
+              </>
+            )}
+          </Button>
+          <Button 
+            size="sm"
+            variant="outline"
+            onClick={() => handleConnectNow('text')}
+            disabled={connecting || isOffline}
+            className={`flex-1 border-white/30 ${
+              isOffline 
+                ? 'text-gray-300 cursor-not-allowed' 
+                : 'text-white hover:bg-white/10'
+            }`}
+          >
+            {connecting && interactionType === 'text' ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-1 animate-spin" /> Connecting...
+              </>
+            ) : (
+              <>
+                <MessageSquare className="w-4 h-4 mr-1" /> Chat
+              </>
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   );
