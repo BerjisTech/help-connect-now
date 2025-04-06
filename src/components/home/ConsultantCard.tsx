@@ -51,43 +51,33 @@ const ConsultantCard = ({ consultant, staggerIndex }: ConsultantCardProps) => {
       // Check if user is authenticated
       const { data: { session } } = await supabase.auth.getSession();
       
-      if (session?.user) {
-        // If authenticated, create an interaction and redirect to interaction page
-        const { data, error } = await supabase
-          .from('interactions')
-          .insert({
-            helper_id: typeof consultant.id === 'string' ? consultant.id : null,
-            seeker_id: session.user.id,
-            interaction_type: 'text',
-            description: `Consultation with ${consultant.name} on ${consultant.industry}`
-          })
-          .select()
-          .single();
-          
-        if (error) throw error;
+      // Create a unique anonymous ID if not logged in
+      const anonymousId = localStorage.getItem('anonymousId') || uuidv4();
+      if (!session?.user) {
+        localStorage.setItem('anonymousId', anonymousId);
+      }
+      
+      // Create interaction record without linking directly to consultant
+      // This avoids foreign key constraints since consultants aren't in auth.users
+      const { data, error } = await supabase
+        .from('interactions')
+        .insert({
+          // Don't set helper_id directly as it has a foreign key constraint
+          interaction_type: 'text',
+          description: `Consultation with ${consultant.name} on ${consultant.industry}`,
+          seeker_id: session?.user?.id || null,
+          anonymous_seeker_id: session?.user ? null : anonymousId,
+          status: 'pending'
+        })
+        .select()
+        .single();
         
-        // Redirect to the interaction page
+      if (error) throw error;
+      
+      // Redirect based on authentication status
+      if (session?.user) {
         navigate(`/dashboard?interaction=${data.id}`);
       } else {
-        // For anonymous users, store an ID in localStorage
-        const anonymousId = localStorage.getItem('anonymousId') || uuidv4();
-        localStorage.setItem('anonymousId', anonymousId);
-        
-        // Create anonymous interaction
-        const { data, error } = await supabase
-          .from('interactions')
-          .insert({
-            helper_id: typeof consultant.id === 'string' ? consultant.id : null,
-            anonymous_seeker_id: anonymousId,
-            interaction_type: 'text',
-            description: `Anonymous consultation with ${consultant.name} on ${consultant.industry}`
-          })
-          .select()
-          .single();
-          
-        if (error) throw error;
-        
-        // Redirect to browse page with interaction ID
         navigate(`/browse?anonymous=${anonymousId}&interaction=${data.id}`);
       }
       
