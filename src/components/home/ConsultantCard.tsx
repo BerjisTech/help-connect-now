@@ -14,6 +14,7 @@ export interface Consultant {
   rating: number;
   image: string;
   expertise: string[];
+  availability?: string;
 }
 
 interface ConsultantCardProps {
@@ -31,6 +32,17 @@ const ConsultantCard = ({ consultant, staggerIndex }: ConsultantCardProps) => {
     staggerIndex === 1 ? '-mt-8' : 
     staggerIndex === 2 ? 'mt-0' : 
     'mt-8';
+
+  // Function to determine card overlay color based on availability
+  const getAvailabilityClass = () => {
+    if (!consultant.availability || consultant.availability === 'available') {
+      return 'bg-gradient-to-t from-indigo-900/90 via-indigo-800/50 to-transparent';
+    } else if (consultant.availability === 'busy') {
+      return 'bg-gradient-to-t from-amber-900/90 via-amber-800/50 to-transparent';
+    } else {
+      return 'bg-gradient-to-t from-gray-900/90 via-gray-800/50 to-transparent';
+    }
+  };
 
   const handleConnectNow = async () => {
     setConnecting(true);
@@ -88,6 +100,8 @@ const ConsultantCard = ({ consultant, staggerIndex }: ConsultantCardProps) => {
     }
   };
 
+  const isOffline = consultant.availability === 'offline';
+
   return (
     <div 
       className={`relative h-96 rounded-xl overflow-hidden shadow-lg group transition-all duration-300 hover:-translate-y-2 ${staggerClass}`}
@@ -96,13 +110,23 @@ const ConsultantCard = ({ consultant, staggerIndex }: ConsultantCardProps) => {
         className="absolute inset-0 bg-cover bg-center z-0" 
         style={{ backgroundImage: `url(${consultant.image})` }}
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-indigo-900/90 via-indigo-800/50 to-transparent z-10" />
+      <div className={`absolute inset-0 z-10 ${getAvailabilityClass()}`} />
       <div className="absolute bottom-0 left-0 right-0 p-6 z-20 text-white">
         <div className="flex items-center mb-1">
           <span className="flex items-center text-yellow-300 mr-1">
             <Star className="w-4 h-4 fill-current" />
             <span className="ml-1">{consultant.rating}</span>
           </span>
+          
+          {consultant.availability && (
+            <span className={`ml-3 text-xs px-2 py-0.5 rounded-full ${
+              consultant.availability === 'available' ? 'bg-green-500/30 text-green-100' :
+              consultant.availability === 'busy' ? 'bg-amber-500/30 text-amber-100' :
+              'bg-gray-500/30 text-gray-100'
+            }`}>
+              {consultant.availability.charAt(0).toUpperCase() + consultant.availability.slice(1)}
+            </span>
+          )}
         </div>
         <h3 className="text-xl font-bold mb-1">{consultant.name}</h3>
         <p className="text-white/80 mb-3">{consultant.industry}</p>
@@ -119,13 +143,19 @@ const ConsultantCard = ({ consultant, staggerIndex }: ConsultantCardProps) => {
         <Button 
           size="sm" 
           onClick={handleConnectNow}
-          disabled={connecting}
-          className="w-full bg-indigo-500 hover:bg-indigo-600 group-hover:bg-indigo-500"
+          disabled={connecting || isOffline}
+          className={`w-full ${
+            isOffline 
+              ? 'bg-gray-500 cursor-not-allowed' 
+              : 'bg-indigo-500 hover:bg-indigo-600 group-hover:bg-indigo-500'
+          }`}
         >
           {connecting ? (
             <>
               <Loader2 className="w-4 h-4 mr-1 animate-spin" /> Connecting...
             </>
+          ) : isOffline ? (
+            'Currently Offline'
           ) : (
             <>
               Connect Now <ArrowRight className="w-4 h-4 ml-1" />

@@ -9,6 +9,51 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      consultants: {
+        Row: {
+          availability: string
+          avatar_url: string | null
+          bio: string | null
+          created_at: string | null
+          display_name: string
+          expertise: string[] | null
+          hourly_rate: number | null
+          id: string
+          industry: string | null
+          rating: number | null
+          review_count: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          availability?: string
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          display_name: string
+          expertise?: string[] | null
+          hourly_rate?: number | null
+          id?: string
+          industry?: string | null
+          rating?: number | null
+          review_count?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          availability?: string
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          display_name?: string
+          expertise?: string[] | null
+          hourly_rate?: number | null
+          id?: string
+          industry?: string | null
+          rating?: number | null
+          review_count?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       interactions: {
         Row: {
           anonymous_seeker_id: string | null
@@ -193,6 +238,21 @@ export type Database = {
     }
     Enums: {
       availability_status: "available" | "busy" | "offline"
+      expertise_category:
+        | "Leadership"
+        | "Marketing"
+        | "Finance"
+        | "Technology"
+        | "Sales"
+        | "Human Resources"
+        | "Operations"
+        | "Strategy"
+        | "Product Management"
+        | "Design"
+        | "Legal"
+        | "Education"
+        | "Healthcare"
+        | "Research"
       interaction_type: "video" | "audio" | "text"
       user_type: "helper" | "seeker"
     }

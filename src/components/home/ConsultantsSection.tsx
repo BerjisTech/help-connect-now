@@ -50,9 +50,8 @@ const ConsultantsSection = () => {
     const fetchConsultants = async () => {
       try {
         const { data, error } = await supabase
-          .from('profiles')
-          .select('id, display_name, industry, rating, avatar_url, expertise')
-          .eq('user_type', 'helper')
+          .from('consultants')
+          .select('id, display_name, industry, rating, avatar_url, expertise, availability')
           .limit(8);
 
         if (error) {
@@ -62,12 +61,13 @@ const ConsultantsSection = () => {
         if (data && data.length > 0) {
           // Transform the data from Supabase format to our Consultant format
           const formattedConsultants = data.map((item) => ({
-            id: typeof item.id === 'string' ? parseInt(item.id.substring(0, 8), 16) : Math.floor(Math.random() * 1000),
+            id: item.id,
             name: item.display_name,
             industry: item.industry || 'Consultant',
             rating: item.rating || 4.5,
             image: item.avatar_url || `https://images.unsplash.com/photo-${Math.floor(Math.random() * 1000000)}?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80`,
-            expertise: item.expertise || ['Consulting']
+            expertise: item.expertise || ['Consulting'],
+            availability: item.availability
           }));
           
           setConsultants(formattedConsultants);
