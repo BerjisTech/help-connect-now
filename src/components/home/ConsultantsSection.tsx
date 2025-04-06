@@ -1,9 +1,13 @@
 
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import ConsultantCard, { Consultant } from './ConsultantCard';
+import { supabase } from '@/integrations/supabase/client';
 
-// Consultant data
-const consultants: Consultant[] = [
+// Fallback consultant data (in case no consultants are found in the database)
+const fallbackConsultants: Consultant[] = [
   {
     id: 1,
     name: 'Sarah Johnson',
@@ -39,6 +43,50 @@ const consultants: Consultant[] = [
 ];
 
 const ConsultantsSection = () => {
+  const [consultants, setConsultants] = useState<Consultant[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchConsultants = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id, display_name, industry, rating, avatar_url, expertise')
+          .eq('user_type', 'helper')
+          .limit(8);
+
+        if (error) {
+          throw error;
+        }
+
+        if (data && data.length > 0) {
+          // Transform the data from Supabase format to our Consultant format
+          const formattedConsultants = data.map((item) => ({
+            id: typeof item.id === 'string' ? parseInt(item.id.substring(0, 8), 16) : Math.floor(Math.random() * 1000),
+            name: item.display_name,
+            industry: item.industry || 'Consultant',
+            rating: item.rating || 4.5,
+            image: item.avatar_url || `https://images.unsplash.com/photo-${Math.floor(Math.random() * 1000000)}?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80`,
+            expertise: item.expertise || ['Consulting']
+          }));
+          
+          setConsultants(formattedConsultants);
+        } else {
+          // If no consultants found in DB, use fallback data
+          setConsultants(fallbackConsultants);
+        }
+      } catch (error) {
+        console.error('Error fetching consultants:', error);
+        toast.error('Failed to load consultants. Using sample data instead.');
+        setConsultants(fallbackConsultants);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchConsultants();
+  }, []);
+
   return (
     <section className="py-20 bg-white">
       <div className="container mx-auto px-4">
@@ -49,16 +97,22 @@ const ConsultantsSection = () => {
           </p>
         </div>
         
-        {/* Consultant cards with staggered heights */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-16">
-          {consultants.map((consultant, index) => (
-            <ConsultantCard 
-              key={consultant.id} 
-              consultant={consultant} 
-              staggerIndex={index}
-            />
-          ))}
-        </div>
+        {loading ? (
+          <div className="flex justify-center items-center py-20">
+            <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+            <span className="ml-2 text-indigo-600">Loading consultants...</span>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-16">
+            {consultants.map((consultant, index) => (
+              <ConsultantCard 
+                key={typeof consultant.id === 'string' ? consultant.id : consultant.id.toString()} 
+                consultant={consultant} 
+                staggerIndex={index % 4}
+              />
+            ))}
+          </div>
+        )}
         
         <div className="text-center mt-10">
           <Button asChild variant="outline" size="lg" className="border-indigo-300 text-indigo-700 hover:bg-indigo-50">
