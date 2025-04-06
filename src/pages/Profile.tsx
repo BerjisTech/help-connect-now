@@ -1,218 +1,44 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import Layout from '@/components/Layout';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { ThemeToggle } from '@/components/ThemeToggle';
-import { useTheme } from '@/contexts/ThemeContext';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { toast } from 'sonner';
-import { Database } from '@/integrations/supabase/types';
 
-// Update the Profile type to include is_admin
-type Profile = Database['public']['Tables']['profiles']['Row'] & {
-  is_admin?: boolean;
-};
-type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
-type Availability = Database['public']['Enums']['availability_status'];
+import React from 'react';
+import Layout from '@/components/Layout';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import ProfileCard from '@/components/profile/ProfileCard';
+import ProfileBasicInfo from '@/components/profile/ProfileBasicInfo';
+import ExpertiseSection from '@/components/profile/ExpertiseSection';
+import ConsultantSection from '@/components/profile/ConsultantSection';
+import AdminSection from '@/components/profile/AdminSection';
+import ThemeSettings from '@/components/profile/ThemeSettings';
+import { useProfile } from '@/hooks/useProfile';
 
 const Profile = () => {
-  const navigate = useNavigate();
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  
-  // Form states
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [displayName, setDisplayName] = useState('');
-  const [bio, setBio] = useState('');
-  const [industry, setIndustry] = useState('');
-  const [expertiseInput, setExpertiseInput] = useState('');
-  const [expertise, setExpertise] = useState<string[]>([]);
-  const [isConsultant, setIsConsultant] = useState(false);
-  const [hourlyRate, setHourlyRate] = useState('');
-  const [availability, setAvailability] = useState<Availability>('offline');
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  useEffect(() => {
-    checkUser();
-  }, []);
-
-  const checkUser = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        navigate('/auth');
-        return;
-      }
-      
-      fetchProfile(user.id);
-    } catch (error) {
-      console.error('Error checking user:', error);
-      navigate('/auth');
-    }
-  };
-
-  const fetchProfile = async (userId: string) => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-      
-      if (error) {
-        throw error;
-      }
-      
-      if (data) {
-        setProfile(data);
-        
-        // Initialize form with profile data
-        setFirstName(data.first_name || '');
-        setLastName(data.last_name || '');
-        setDisplayName(data.display_name || '');
-        setBio(data.bio || '');
-        setIndustry(data.industry || '');
-        setExpertise(data.expertise || []);
-        setIsAdmin(data.is_admin || false);
-        
-        // Check if user exists in consultants table
-        const { data: consultantData } = await supabase
-          .from('consultants')
-          .select('*')
-          .eq('id', userId)
-          .maybeSingle();
-          
-        setIsConsultant(!!consultantData);
-        setHourlyRate(consultantData?.hourly_rate?.toString() || '');
-        setAvailability(data.availability || 'offline');
-      }
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-      toast.error('Failed to load profile');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAddExpertise = () => {
-    if (!expertiseInput.trim()) return;
-    
-    if (!expertise.includes(expertiseInput.trim())) {
-      setExpertise([...expertise, expertiseInput.trim()]);
-    }
-    
-    setExpertiseInput('');
-  };
-
-  const handleRemoveExpertise = (index: number) => {
-    setExpertise(expertise.filter((_, i) => i !== index));
-  };
-
-  const handleSaveProfile = async () => {
-    setSaving(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        navigate('/auth');
-        return;
-      }
-      
-      // Update profile in profiles table
-      const updates: ProfileUpdate = {
-        id: user.id,
-        first_name: firstName,
-        last_name: lastName,
-        display_name: displayName || 'User',
-        bio,
-        industry,
-        expertise,
-        availability,
-      };
-      
-      const { error } = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('id', user.id);
-      
-      if (error) {
-        throw error;
-      }
-
-      // Handle consultant status
-      if (isConsultant) {
-        // Upsert to consultants table
-        const { error: consultantError } = await supabase
-          .from('consultants')
-          .upsert({
-            id: user.id,
-            display_name: displayName || 'User',
-            avatar_url: profile?.avatar_url,
-            bio,
-            industry,
-            expertise,
-            hourly_rate: hourlyRate ? parseFloat(hourlyRate) : null,
-            availability
-          });
-          
-        if (consultantError) {
-          throw consultantError;
-        }
-      } else {
-        // Check if entry exists in consultants table and remove if needed
-        const { data: existingConsultant } = await supabase
-          .from('consultants')
-          .select('id')
-          .eq('id', user.id)
-          .maybeSingle();
-          
-        if (existingConsultant) {
-          const { error: deleteError } = await supabase
-            .from('consultants')
-            .delete()
-            .eq('id', user.id);
-            
-          if (deleteError) {
-            throw deleteError;
-          }
-        }
-      }
-      
-      toast.success('Profile updated successfully');
-      fetchProfile(user.id); // Refresh profile data
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      toast.error('Failed to update profile');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const { theme, setTheme } = useTheme();
+  const {
+    profile,
+    loading,
+    saving,
+    firstName,
+    lastName,
+    displayName,
+    bio,
+    industry,
+    expertiseInput,
+    expertise,
+    isConsultant,
+    hourlyRate,
+    availability,
+    isAdmin,
+    setFirstName,
+    setLastName,
+    setDisplayName,
+    setBio,
+    setIndustry,
+    setExpertiseInput,
+    setIsConsultant,
+    setHourlyRate,
+    setAvailability,
+    handleAddExpertise,
+    handleRemoveExpertise,
+    handleSaveProfile
+  } = useProfile();
 
   if (loading) {
     return (
@@ -230,238 +56,48 @@ const Profile = () => {
         <div className="max-w-3xl mx-auto">
           <h1 className="text-3xl font-bold mb-6">Your Profile</h1>
           
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-4">
-                <Avatar className="h-16 w-16">
-                  <AvatarImage src={profile?.avatar_url || ''} />
-                  <AvatarFallback className="bg-primary text-white text-xl">
-                    {displayName.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <CardTitle className="text-xl">
-                    {displayName || 'New User'}
-                  </CardTitle>
-                  <CardDescription className="flex items-center gap-2">
-                    {isConsultant && <span className="text-green-600 font-medium">Consultant</span>}
-                    {isAdmin && <span className="bg-purple-100 text-purple-800 text-xs px-2 py-0.5 rounded-full">Admin</span>}
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
+          <ProfileCard
+            profile={profile}
+            displayName={displayName}
+            isConsultant={isConsultant}
+            isAdmin={isAdmin}
+            saving={saving}
+            onSave={handleSaveProfile}
+          >
+            <ProfileBasicInfo
+              firstName={firstName}
+              lastName={lastName}
+              displayName={displayName}
+              bio={bio}
+              industry={industry}
+              setFirstName={setFirstName}
+              setLastName={setLastName}
+              setDisplayName={setDisplayName}
+              setBio={setBio}
+              setIndustry={setIndustry}
+            />
             
-            <CardContent className="space-y-6">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
-                  <Input
-                    id="firstName"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
-                  <Input
-                    id="lastName"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="displayName">Display Name</Label>
-                <Input
-                  id="displayName"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="bio">Bio</Label>
-                <Textarea
-                  id="bio"
-                  placeholder="Tell others about yourself..."
-                  className="resize-none h-24"
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value)}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="industry">Industry</Label>
-                <Select value={industry} onValueChange={setIndustry}>
-                  <SelectTrigger id="industry">
-                    <SelectValue placeholder="Select your industry" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="unspecified">None</SelectItem>
-                    <SelectItem value="Technology">Technology</SelectItem>
-                    <SelectItem value="Finance">Finance</SelectItem>
-                    <SelectItem value="Healthcare">Healthcare</SelectItem>
-                    <SelectItem value="Education">Education</SelectItem>
-                    <SelectItem value="Marketing">Marketing</SelectItem>
-                    <SelectItem value="Legal">Legal</SelectItem>
-                    <SelectItem value="Design">Design</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-3">
-                <Label>Expertise</Label>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Add area of expertise..."
-                    value={expertiseInput}
-                    onChange={(e) => setExpertiseInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        handleAddExpertise();
-                      }
-                    }}
-                  />
-                  <Button type="button" onClick={handleAddExpertise}>
-                    Add
-                  </Button>
-                </div>
-                
-                {expertise.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {expertise.map((exp, index) => (
-                      <div 
-                        key={index} 
-                        className="bg-gray-100 rounded-full px-3 py-1 text-sm flex items-center"
-                      >
-                        {exp}
-                        <button 
-                          type="button"
-                          className="ml-2 text-gray-500 hover:text-gray-700"
-                          onClick={() => handleRemoveExpertise(index)}
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              
-              <div className="pt-4 border-t">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium">Register as Consultant</h3>
-                    <p className="text-sm text-gray-500">Make yourself available to help others</p>
-                  </div>
-                  <Switch
-                    checked={isConsultant}
-                    onCheckedChange={setIsConsultant}
-                  />
-                </div>
-              </div>
-              
-              {isConsultant && (
-                <>
-                  <div className="space-y-2">
-                    <Label htmlFor="hourlyRate">Hourly Rate (USD)</Label>
-                    <Input
-                      id="hourlyRate"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      placeholder="0.00"
-                      value={hourlyRate}
-                      onChange={(e) => setHourlyRate(e.target.value)}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="availability">Availability</Label>
-                    <Select 
-                      value={availability} 
-                      onValueChange={(value) => setAvailability(value as Availability)}
-                    >
-                      <SelectTrigger id="availability">
-                        <SelectValue placeholder="Set your availability" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="available">Available</SelectItem>
-                        <SelectItem value="busy">Busy</SelectItem>
-                        <SelectItem value="offline">Offline</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </>
-              )}
-
-              {isAdmin && (
-                <div className="mt-6 p-4 bg-purple-50 rounded-lg border border-purple-100 dark:bg-purple-900/20 dark:border-purple-800/30">
-                  <h3 className="text-lg font-semibold text-purple-800 dark:text-purple-300 mb-2">Admin Controls</h3>
-                  <p className="text-sm text-purple-700 dark:text-purple-400 mb-3">You have admin privileges.</p>
-                  <Button 
-                    variant="outline" 
-                    className="bg-white dark:bg-purple-900/30 hover:bg-purple-50 dark:hover:bg-purple-800/40 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-700"
-                    onClick={() => navigate('/dashboard')}
-                  >
-                    Go to Admin Dashboard
-                  </Button>
-                </div>
-              )}
-              
-              <div className="pt-4 border-t">
-                <h3 className="font-medium mb-2">Theme Settings</h3>
-                <div className="flex flex-col space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Light Mode</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Use light theme</p>
-                    </div>
-                    <Switch
-                      checked={theme === 'light'}
-                      onCheckedChange={() => setTheme('light')}
-                    />
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Dark Mode</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Use dark theme</p>
-                    </div>
-                    <Switch
-                      checked={theme === 'dark'}
-                      onCheckedChange={() => setTheme('dark')}
-                    />
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Use System Settings</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Follow your system's theme settings</p>
-                    </div>
-                    <Switch
-                      checked={theme === 'system'}
-                      onCheckedChange={() => setTheme('system')}
-                    />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
+            <ExpertiseSection
+              expertise={expertise}
+              expertiseInput={expertiseInput}
+              setExpertiseInput={setExpertiseInput}
+              onAddExpertise={handleAddExpertise}
+              onRemoveExpertise={handleRemoveExpertise}
+            />
             
-            <CardFooter>
-              <Button 
-                onClick={handleSaveProfile} 
-                disabled={saving}
-                className="ml-auto"
-              >
-                {saving ? 'Saving...' : 'Save Profile'}
-              </Button>
-            </CardFooter>
-          </Card>
+            <ConsultantSection
+              isConsultant={isConsultant}
+              hourlyRate={hourlyRate}
+              availability={availability}
+              setIsConsultant={setIsConsultant}
+              setHourlyRate={setHourlyRate}
+              setAvailability={setAvailability}
+            />
+            
+            <AdminSection isAdmin={isAdmin} />
+            
+            <ThemeSettings />
+          </ProfileCard>
         </div>
       </div>
     </Layout>
