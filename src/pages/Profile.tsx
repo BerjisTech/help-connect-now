@@ -27,7 +27,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from 'sonner';
 import { Database } from '@/integrations/supabase/types';
 
-type Profile = Database['public']['Tables']['profiles']['Row'];
+// Update the Profile type to include is_admin
+type Profile = Database['public']['Tables']['profiles']['Row'] & {
+  is_admin?: boolean;
+};
 type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
 type Availability = Database['public']['Enums']['availability_status'];
 
