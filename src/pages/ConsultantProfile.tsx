@@ -75,6 +75,26 @@ const defaultProfileConfig: ProfileConfig = {
   }
 };
 
+// Helper function to get profile config from storage
+const getStoredProfileConfig = (consultantId: string): ProfileConfig | null => {
+  try {
+    const storedConfig = sessionStorage.getItem(`profileConfig_${consultantId}`);
+    return storedConfig ? JSON.parse(storedConfig) : null;
+  } catch (error) {
+    console.error('Error retrieving stored profile config:', error);
+    return null;
+  }
+};
+
+// Helper function to store profile config
+const storeProfileConfig = (consultantId: string, config: ProfileConfig): void => {
+  try {
+    sessionStorage.setItem(`profileConfig_${consultantId}`, JSON.stringify(config));
+  } catch (error) {
+    console.error('Error storing profile config:', error);
+  }
+};
+
 const ConsultantProfile = () => {
   const { id } = useParams<{ id: string }>();
   const [consultant, setConsultant] = useState<ConsultantData | null>(null);
@@ -120,9 +140,10 @@ const ConsultantProfile = () => {
             expertise: consultantData.expertise || []
           });
           
-          // Get profile config if it exists in metadata
-          if (consultantData.metadata && typeof consultantData.metadata === 'object' && consultantData.metadata.profileConfig) {
-            setProfileConfig(consultantData.metadata.profileConfig);
+          // Try to get stored profile config
+          const storedConfig = getStoredProfileConfig(id);
+          if (storedConfig) {
+            setProfileConfig(storedConfig);
           }
         }
       } catch (error) {
@@ -137,20 +158,11 @@ const ConsultantProfile = () => {
   }, [id]);
 
   const saveProfileConfig = async (updatedConfig: ProfileConfig) => {
-    if (!consultant) return;
+    if (!consultant || !id) return;
     
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          metadata: {
-            profileConfig: updatedConfig
-          }
-        })
-        .eq('id', consultant.id);
-      
-      if (error) throw error;
-      
+      // Store the config in sessionStorage instead of database
+      storeProfileConfig(id, updatedConfig);
       setProfileConfig(updatedConfig);
       setIsEditing(false);
       toast.success('Profile configuration saved successfully');
