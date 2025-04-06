@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from '@/components/ui/textarea';
 import VideoCall from '@/components/interaction/VideoCall';
+import ConsultationTimer from '@/components/interaction/ConsultationTimer';
 
 interface InteractionData {
   id: string;
@@ -62,6 +63,8 @@ const InteractionPage = () => {
   const [sendingMessage, setSendingMessage] = useState(false);
   const [showVideoCall, setShowVideoCall] = useState(false);
   const [endCallConfirmOpen, setEndCallConfirmOpen] = useState(false);
+  const [timerRunning, setTimerRunning] = useState(false);
+  const [sessionStartTime, setSessionStartTime] = useState<string | null>(null);
 
   useEffect(() => {
     if (interactionId) {
@@ -122,6 +125,39 @@ const InteractionPage = () => {
     }
   };
 
+  useEffect(() => {
+    if (interaction && interaction.status === 'active') {
+      if (!timerRunning) {
+        setTimerRunning(true);
+        
+        if (!sessionStartTime) {
+          const now = new Date().toISOString();
+          setSessionStartTime(now);
+          
+          updateInteractionStartTime(now);
+        }
+      }
+    }
+  }, [interaction, timerRunning, sessionStartTime]);
+
+  const updateInteractionStartTime = async (startTime: string) => {
+    if (!interactionId) return;
+    
+    try {
+      await supabase
+        .from('interactions')
+        .update({
+          metadata: {
+            ...interaction?.metadata,
+            session_start_time: startTime
+          }
+        })
+        .eq('id', interactionId);
+    } catch (error) {
+      console.error('Error updating interaction start time:', error);
+    }
+  };
+
   const sendMessage = async () => {
     if (!newMessage.trim() || !interactionId) return;
 
@@ -175,6 +211,7 @@ const InteractionPage = () => {
   const confirmEndCall = async () => {
     setShowVideoCall(false);
     setEndCallConfirmOpen(false);
+    setTimerRunning(false);
     toast.success('Video call ended');
     
     if (interaction?.id) {
@@ -182,7 +219,12 @@ const InteractionPage = () => {
         await supabase
           .from('interactions')
           .update({ 
-            status: 'active'
+            status: 'completed',
+            ended_at: new Date().toISOString(),
+            metadata: {
+              ...interaction.metadata,
+              session_end_time: new Date().toISOString()
+            }
           })
           .eq('id', interaction.id);
       } catch (error) {
@@ -233,10 +275,19 @@ const InteractionPage = () => {
           <div className="lg:col-span-1">
             <Card className="h-full">
               <CardHeader>
-                <CardTitle>Interaction Details</CardTitle>
-                <CardDescription>
-                  {interaction.interaction_type.toUpperCase()} Consultation
-                </CardDescription>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <CardTitle>Interaction Details</CardTitle>
+                    <CardDescription>
+                      {interaction.interaction_type.toUpperCase()} Consultation
+                    </CardDescription>
+                  </div>
+                  <ConsultationTimer 
+                    isRunning={timerRunning}
+                    startTime={interaction.metadata?.session_start_time || sessionStartTime}
+                    className="bg-secondary/40 px-2 py-1 rounded-md"
+                  />
+                </div>
               </CardHeader>
               <CardContent>
                 {consultant ? (
@@ -320,7 +371,7 @@ const InteractionPage = () => {
                     <DialogHeader>
                       <DialogTitle>End this consultation?</DialogTitle>
                       <DialogDescription>
-                        This will close the current interaction. You can leave feedback and rate your consultant afterward.
+                        This will stop the timer and close the current interaction. You can leave feedback and rate your consultant afterward.
                       </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
