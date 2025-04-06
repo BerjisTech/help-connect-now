@@ -52,9 +52,6 @@ const Profile = () => {
       
       const file = event.target.files[0];
       const fileExt = file.name.split('.').pop();
-      const filePath = `${profile?.id}.${fileExt}`;
-      
-      setUploadingAvatar(true);
       
       // Check if user is authenticated
       const { data: { user } } = await supabase.auth.getUser();
@@ -62,6 +59,11 @@ const Profile = () => {
         toast.error('You must be logged in to upload a profile picture');
         return;
       }
+      
+      // Create a path that includes the user ID as a folder
+      const filePath = `${user.id}/${user.id}.${fileExt}`;
+      
+      setUploadingAvatar(true);
       
       // Upload the image to Supabase Storage
       const { error: uploadError } = await supabase.storage
