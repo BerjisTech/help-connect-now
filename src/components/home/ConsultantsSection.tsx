@@ -49,7 +49,7 @@ const ConsultantsSection = () => {
   useEffect(() => {
     const fetchConsultants = async () => {
       try {
-        // Use the RPC function to fetch consultants and cast the return type
+        // Use the RPC function to fetch consultants
         const { data, error } = await supabase.rpc('get_consultants');
 
         if (error) {

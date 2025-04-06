@@ -112,14 +112,11 @@ SelectLabel.displayName = SelectPrimitive.Label.displayName
 
 const SelectItem = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Item>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item> & {
-    // Ensure the value prop is never an empty string
-    value: string;
-  }
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>
 >(({ className, children, ...props }, ref) => {
-  // Guard against empty value strings
-  if (props.value === '') {
-    console.warn('SelectItem must have a non-empty value prop');
+  // Stronger validation - ensure value exists and is not an empty string
+  if (!props.value || props.value === '') {
+    console.error('SelectItem must have a non-empty value prop:', children);
     return null;
   }
   
