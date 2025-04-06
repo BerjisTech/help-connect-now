@@ -89,14 +89,20 @@ const ConsultantProfile = () => {
       
       setLoading(true);
       try {
+        // Check if we're on a development environment
+        const isDevelopment = process.env.NODE_ENV === 'development';
+        
         // Fetch consultant data
         const { data: consultantData, error: consultantError } = await supabase
           .from('profiles')
-          .select('id, display_name, avatar_url, bio, industry, expertise, metadata')
+          .select('*')
           .eq('id', id)
           .single();
         
-        if (consultantError) throw consultantError;
+        if (consultantError) {
+          console.error('Error fetching consultant:', consultantError);
+          throw consultantError;
+        }
         
         // Check if current user
         const { data: { user } } = await supabase.auth.getUser();
@@ -106,16 +112,16 @@ const ConsultantProfile = () => {
         // Set consultant data
         if (consultantData) {
           setConsultant({
-            id: consultantData.id,
-            display_name: consultantData.display_name,
+            id: consultantData.id || id,
+            display_name: consultantData.display_name || 'Consultant',
             avatar_url: consultantData.avatar_url,
-            bio: consultantData.bio,
-            industry: consultantData.industry,
-            expertise: consultantData.expertise
+            bio: consultantData.bio || '',
+            industry: consultantData.industry || '',
+            expertise: consultantData.expertise || []
           });
           
-          // Get profile config if it exists
-          if (consultantData.metadata?.profileConfig) {
+          // Get profile config if it exists in metadata
+          if (consultantData.metadata && typeof consultantData.metadata === 'object' && consultantData.metadata.profileConfig) {
             setProfileConfig(consultantData.metadata.profileConfig);
           }
         }

@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { StarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -24,6 +25,7 @@ export const ConsultantCard = ({ consultant, onInteraction }: ConsultantCardProp
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [interactionType, setInteractionType] = useState<'video' | 'audio' | 'text' | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+  const navigate = useNavigate();
 
   const checkAuth = async (type: 'video' | 'audio' | 'text') => {
     const { data } = await supabase.auth.getUser();
@@ -49,9 +51,21 @@ export const ConsultantCard = ({ consultant, onInteraction }: ConsultantCardProp
     }
   };
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Prevent navigation if clicking on buttons
+    if ((e.target as Element).closest('button')) {
+      return;
+    }
+    navigate(`/consultant/${consultant.id}`);
+  };
+
   return (
     <>
-      <Card key={consultant.id.toString()} className="overflow-hidden h-full">
+      <Card 
+        key={consultant.id.toString()} 
+        className="overflow-hidden h-full cursor-pointer hover:shadow-md transition-shadow"
+        onClick={handleCardClick}
+      >
         <div className="h-48 relative">
           <img 
             src={consultant.image} 
@@ -100,7 +114,10 @@ export const ConsultantCard = ({ consultant, onInteraction }: ConsultantCardProp
             size="sm" 
             variant="default"
             className="flex-1"
-            onClick={() => handleInteractionClick('video')}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleInteractionClick('video');
+            }}
             disabled={consultant.availability === 'offline'}
           >
             Video Call
@@ -109,7 +126,10 @@ export const ConsultantCard = ({ consultant, onInteraction }: ConsultantCardProp
             size="sm" 
             variant="outline"
             className="flex-1"
-            onClick={() => handleInteractionClick('text')}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleInteractionClick('text');
+            }}
             disabled={consultant.availability === 'offline'}
           >
             Chat

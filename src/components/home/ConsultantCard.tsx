@@ -86,11 +86,20 @@ const ConsultantCard = ({ consultant, staggerIndex }: ConsultantCardProps) => {
     }
   };
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Prevent navigation if clicking on buttons
+    if ((e.target as Element).closest('button')) {
+      return;
+    }
+    navigate(`/consultant/${consultant.id}`);
+  };
+
   const isOffline = consultant.availability === 'offline';
 
   return (
     <div 
-      className={`relative h-96 rounded-xl overflow-hidden shadow-lg group transition-all duration-300 hover:-translate-y-2 ${staggerClass}`}
+      className={`relative h-96 rounded-xl overflow-hidden shadow-lg group transition-all duration-300 hover:-translate-y-2 ${staggerClass} cursor-pointer`}
+      onClick={handleCardClick}
     >
       <div 
         className="absolute inset-0 bg-cover bg-center z-0" 
@@ -129,7 +138,10 @@ const ConsultantCard = ({ consultant, staggerIndex }: ConsultantCardProps) => {
         <div className="flex gap-2">
           <Button 
             size="sm" 
-            onClick={() => handleConnectNow('video')}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleConnectNow('video');
+            }}
             disabled={connecting || isOffline}
             className={`flex-1 ${
               isOffline 
@@ -150,7 +162,10 @@ const ConsultantCard = ({ consultant, staggerIndex }: ConsultantCardProps) => {
           <Button 
             size="sm"
             variant="outline"
-            onClick={() => handleConnectNow('text')}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleConnectNow('text');
+            }}
             disabled={connecting || isOffline}
             className={`flex-1 border-white/30 ${
               isOffline 
