@@ -70,44 +70,44 @@ const Index = () => {
 
   return (
     <Layout>
-      {/* Hero Section */}
-      <section className="py-20 bg-gradient-to-br from-primary/5 to-primary/10">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row items-center gap-12">
-            <div className="md:w-1/2">
-              <img 
-                src="/lovable-uploads/58958b46-1379-46a1-9e28-8f3c7133bc7a.png" 
-                alt="Expert consultants" 
-                className="w-full h-auto rounded-lg shadow-xl"
-              />
-            </div>
-            <div className="md:w-1/2 space-y-6">
+      {/* Hero Section with Animated Background */}
+      <section className="py-24 relative overflow-hidden">
+        <div className="absolute inset-0 animated-gradient opacity-10"></div>
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxwYXR0ZXJuIGlkPSJwYXR0ZXJuIiB4PSIwIiB5PSIwIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHBhdHRlcm5UcmFuc2Zvcm09InJvdGF0ZSg0NSkiPjxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbD0icmdiYSg5OSwxMDIsMjQxLDAuMDMpIj48L3JlY3Q+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI3BhdHRlcm4pIj48L3JlY3Q+PC9zdmc+')] opacity-30"></div>
+        
+        <div className="absolute w-64 h-64 rounded-full bg-indigo-300/20 -top-10 -left-10 blur-3xl animate-pulse-soft"></div>
+        <div className="absolute w-96 h-96 rounded-full bg-indigo-500/10 bottom-0 right-0 blur-3xl animate-pulse-soft animation-delay-2000"></div>
+        
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="flex flex-col items-center">
+            <div className="max-w-3xl mx-auto text-center space-y-8 mb-10">
               <h1 className="text-5xl md:text-6xl font-bold text-primary leading-tight">
                 Connect with Expert Consultants in Minutes
               </h1>
-              <p className="text-xl text-gray-700">
+              <p className="text-xl text-indigo-900/80">
                 Find specialized consultants from all industries ready to help solve your problems through video, audio, or text chat.
               </p>
-              <div className="space-y-4 pt-4">
-                <Input
-                  placeholder="Describe what you need help with..."
-                  className="text-lg py-6"
-                  value={problemDescription}
-                  onChange={(e) => setProblemDescription(e.target.value)}
-                />
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <Button asChild size="lg" className="flex-1">
-                    <a href="/auth?tab=signup">Sign Up & Get Help</a>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="flex-1"
-                    onClick={handleAnonymousHelp}
-                  >
-                    Continue Anonymously
-                  </Button>
-                </div>
+            </div>
+            
+            <div className="w-full max-w-2xl mx-auto space-y-6 pt-4">
+              <Input
+                placeholder="Describe what you need help with..."
+                className="text-lg py-6 border-indigo-200 focus:border-indigo-500 shadow-sm"
+                value={problemDescription}
+                onChange={(e) => setProblemDescription(e.target.value)}
+              />
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Button asChild size="lg" className="flex-1 bg-indigo-600 hover:bg-indigo-700">
+                  <a href="/auth?tab=signup">Sign Up & Get Help</a>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="flex-1 border-indigo-300 text-indigo-700 hover:bg-indigo-50 hover:text-indigo-800"
+                  onClick={handleAnonymousHelp}
+                >
+                  Continue Anonymously
+                </Button>
               </div>
             </div>
           </div>
@@ -118,8 +118,8 @@ const Index = () => {
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">Top Consultants Ready to Help</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-bold text-indigo-600 mb-4">Top Consultants Ready to Help</h2>
+            <p className="text-xl text-indigo-900/70 max-w-3xl mx-auto">
               Our platform connects you with verified experts across industries
             </p>
           </div>
@@ -134,10 +134,10 @@ const Index = () => {
                   className="absolute inset-0 bg-cover bg-center z-0" 
                   style={{ backgroundImage: `url(${consultant.image})` }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent z-10" />
+                <div className="absolute inset-0 bg-gradient-to-t from-indigo-900/90 via-indigo-800/50 to-transparent z-10" />
                 <div className="absolute bottom-0 left-0 right-0 p-6 z-20 text-white">
                   <div className="flex items-center mb-1">
-                    <span className="flex items-center text-yellow-400 mr-1">
+                    <span className="flex items-center text-yellow-300 mr-1">
                       <Star className="w-4 h-4 fill-current" />
                       <span className="ml-1">{consultant.rating}</span>
                     </span>
@@ -154,7 +154,7 @@ const Index = () => {
                       </span>
                     ))}
                   </div>
-                  <Button size="sm" className="w-full group-hover:bg-primary">
+                  <Button size="sm" className="w-full bg-indigo-500 hover:bg-indigo-600 group-hover:bg-indigo-500">
                     Connect Now <ArrowRight className="w-4 h-4 ml-1" />
                   </Button>
                 </div>
@@ -163,7 +163,7 @@ const Index = () => {
           </div>
           
           <div className="text-center mt-10">
-            <Button asChild variant="outline" size="lg">
+            <Button asChild variant="outline" size="lg" className="border-indigo-300 text-indigo-700 hover:bg-indigo-50">
               <a href="/browse">View All Consultants</a>
             </Button>
           </div>
@@ -171,71 +171,71 @@ const Index = () => {
       </section>
 
       {/* How It Works Section */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-indigo-50/50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">How It Works</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-bold text-indigo-600 mb-4">How It Works</h2>
+            <p className="text-xl text-indigo-900/70 max-w-3xl mx-auto">
               Get expert help in three simple steps
             </p>
           </div>
           
           <div className="grid md:grid-cols-3 gap-10 max-w-5xl mx-auto">
-            <div className="text-center p-6 bg-white rounded-xl shadow-sm">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                <SearchIcon className="w-8 h-8 text-primary" />
+            <div className="text-center p-8 bg-white rounded-xl shadow-sm border border-indigo-100">
+              <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <SearchIcon className="w-8 h-8 text-indigo-600" />
               </div>
-              <h3 className="text-xl font-bold mb-3">1. Find a Consultant</h3>
-              <p className="text-gray-600">
+              <h3 className="text-xl font-bold mb-3 text-indigo-900">1. Find a Consultant</h3>
+              <p className="text-indigo-800/70">
                 Browse our marketplace of experts and find the right match for your needs
               </p>
             </div>
             
-            <div className="text-center p-6 bg-white rounded-xl shadow-sm">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                <CheckCircle className="w-8 h-8 text-primary" />
+            <div className="text-center p-8 bg-white rounded-xl shadow-sm border border-indigo-100">
+              <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <CheckCircle className="w-8 h-8 text-indigo-600" />
               </div>
-              <h3 className="text-xl font-bold mb-3">2. Choose Communication</h3>
-              <p className="text-gray-600">
+              <h3 className="text-xl font-bold mb-3 text-indigo-900">2. Choose Communication</h3>
+              <p className="text-indigo-800/70">
                 Select your preferred method: video, audio, or text chat
               </p>
             </div>
             
-            <div className="text-center p-6 bg-white rounded-xl shadow-sm">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                <PhoneCall className="w-8 h-8 text-primary" />
+            <div className="text-center p-8 bg-white rounded-xl shadow-sm border border-indigo-100">
+              <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <PhoneCall className="w-8 h-8 text-indigo-600" />
               </div>
-              <h3 className="text-xl font-bold mb-3">3. Get Instant Help</h3>
-              <p className="text-gray-600">
+              <h3 className="text-xl font-bold mb-3 text-indigo-900">3. Get Instant Help</h3>
+              <p className="text-indigo-800/70">
                 Connect immediately and receive personalized assistance for your problem
               </p>
             </div>
           </div>
           
-          <div className="mt-16 bg-white p-8 rounded-xl shadow-sm max-w-3xl mx-auto">
+          <div className="mt-16 bg-white p-8 rounded-xl shadow-sm border border-indigo-100 max-w-3xl mx-auto">
             <div className="flex flex-col md:flex-row items-center gap-8">
               <div className="md:w-2/3">
-                <h3 className="text-2xl font-bold mb-3">Ready to supercharge your career or business?</h3>
-                <p className="text-gray-600 mb-4">
+                <h3 className="text-2xl font-bold mb-3 text-indigo-900">Ready to supercharge your career or business?</h3>
+                <p className="text-indigo-800/70 mb-4">
                   Our consultants are online now and ready to help you overcome any challenge.
                 </p>
                 <div className="flex flex-wrap gap-3 mb-4">
-                  <div className="flex items-center text-sm">
-                    <Video className="w-4 h-4 mr-1 text-primary" />
+                  <div className="flex items-center text-sm text-indigo-600">
+                    <Video className="w-4 h-4 mr-1" />
                     <span>Video Chat</span>
                   </div>
-                  <div className="flex items-center text-sm">
-                    <PhoneCall className="w-4 h-4 mr-1 text-primary" />
+                  <div className="flex items-center text-sm text-indigo-600">
+                    <PhoneCall className="w-4 h-4 mr-1" />
                     <span>Audio Call</span>
                   </div>
-                  <div className="flex items-center text-sm">
-                    <MessageSquare className="w-4 h-4 mr-1 text-primary" />
+                  <div className="flex items-center text-sm text-indigo-600">
+                    <MessageSquare className="w-4 h-4 mr-1" />
                     <span>Text Chat</span>
                   </div>
                 </div>
               </div>
               <div className="md:w-1/3">
-                <Button asChild size="lg" className="w-full">
+                <Button asChild size="lg" className="w-full bg-indigo-600 hover:bg-indigo-700">
                   <a href="/browse">Find Consultants</a>
                 </Button>
               </div>
@@ -249,49 +249,49 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-16">
             <div>
-              <h2 className="text-3xl font-bold mb-6 text-primary">About Us</h2>
-              <p className="text-gray-600 mb-4">
+              <h2 className="text-3xl font-bold mb-6 text-indigo-600">About Us</h2>
+              <p className="text-indigo-900/70 mb-4">
                 Help Connect Now was founded with a simple mission: to connect people with the right expertise at the moment they need it most.
               </p>
-              <p className="text-gray-600 mb-4">
+              <p className="text-indigo-900/70 mb-4">
                 Our platform brings together industry experts, professionals, and specialists who are passionate about sharing their knowledge and helping others succeed.
               </p>
-              <p className="text-gray-600">
+              <p className="text-indigo-900/70">
                 Whether you're facing a technical challenge, need business advice, or require specialized guidance, our consultants are ready to provide personalized assistance through convenient video, audio, or text communication.
               </p>
             </div>
             
             <div>
-              <h2 className="text-3xl font-bold mb-6 text-primary">Contact Us</h2>
-              <p className="text-gray-600 mb-6">
+              <h2 className="text-3xl font-bold mb-6 text-indigo-600">Contact Us</h2>
+              <p className="text-indigo-900/70 mb-6">
                 Have questions about our platform or need assistance? Our team is here to help.
               </p>
               <div className="space-y-4">
                 <div className="flex items-start">
-                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center mr-4">
-                    <Mail className="w-5 h-5 text-primary" />
+                  <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center mr-4">
+                    <Mail className="w-5 h-5 text-indigo-600" />
                   </div>
                   <div>
-                    <h3 className="font-medium">Email</h3>
-                    <p className="text-gray-600">support@helpconnectnow.com</p>
+                    <h3 className="font-medium text-indigo-900">Email</h3>
+                    <p className="text-indigo-900/70">support@helpconnectnow.com</p>
                   </div>
                 </div>
                 <div className="flex items-start">
-                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center mr-4">
-                    <PhoneCall className="w-5 h-5 text-primary" />
+                  <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center mr-4">
+                    <PhoneCall className="w-5 h-5 text-indigo-600" />
                   </div>
                   <div>
-                    <h3 className="font-medium">Phone</h3>
-                    <p className="text-gray-600">+1 (800) 555-0123</p>
+                    <h3 className="font-medium text-indigo-900">Phone</h3>
+                    <p className="text-indigo-900/70">+1 (800) 555-0123</p>
                   </div>
                 </div>
                 <div className="flex items-start">
-                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center mr-4">
-                    <Globe className="w-5 h-5 text-primary" />
+                  <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center mr-4">
+                    <Globe className="w-5 h-5 text-indigo-600" />
                   </div>
                   <div>
-                    <h3 className="font-medium">Headquarters</h3>
-                    <p className="text-gray-600">123 Innovation Way, Tech City, CA 94103</p>
+                    <h3 className="font-medium text-indigo-900">Headquarters</h3>
+                    <p className="text-indigo-900/70">123 Innovation Way, Tech City, CA 94103</p>
                   </div>
                 </div>
               </div>
