@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { Video, VideoOff, Mic, MicOff, PhoneOff } from 'lucide-react';
+import { Video, VideoOff, Mic, MicOff, PhoneOff, RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface VideoCallProps {
@@ -19,6 +19,8 @@ const VideoCall = ({ interactionId, participantId, isInitiator = false, onEndCal
   const [isConnected, setIsConnected] = useState(false);
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
+  const [hasMediaError, setHasMediaError] = useState(false);
+  const [isAudioOnly, setIsAudioOnly] = useState(false);
   
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
@@ -65,12 +67,15 @@ const VideoCall = ({ interactionId, participantId, isInitiator = false, onEndCal
   // Set up media streams and peer connection
   const setupMediaAndPeerConnection = async () => {
     setIsConnecting(true);
+    setHasMediaError(false);
+    
     try {
-      // Get local media stream
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: true, 
-        audio: true 
-      });
+      // First try to get both video and audio
+      const constraints = isAudioOnly 
+        ? { video: false, audio: true }
+        : { video: true, audio: true };
+      
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
       
       setLocalStream(stream);
       
@@ -147,10 +152,37 @@ const VideoCall = ({ interactionId, participantId, isInitiator = false, onEndCal
       
     } catch (error) {
       console.error('Error setting up media or peer connection:', error);
-      toast.error('Could not access camera or microphone');
-      setIsConnecting(false);
-      onEndCall?.();
+      
+      // If we failed with video, try audio-only as fallback
+      if (!isAudioOnly && error instanceof Error && error.name === 'NotReadableError') {
+        setHasMediaError(true);
+        toast.error('Could not access camera. Try using audio-only mode or check your camera settings.');
+      } else {
+        toast.error('Could not access microphone or camera. Please check your device settings.');
+        setHasMediaError(true);
+        setIsConnecting(false);
+      }
     }
+  };
+
+  // Try with audio only
+  const tryAudioOnly = () => {
+    // Clean up existing resources first
+    if (localStream) {
+      localStream.getTracks().forEach(track => track.stop());
+    }
+    
+    if (peerConnectionRef.current) {
+      peerConnectionRef.current.close();
+      peerConnectionRef.current = null;
+    }
+    
+    setLocalStream(null);
+    setRemoteStream(null);
+    setIsAudioOnly(true);
+    
+    // Retry connection
+    setupMediaAndPeerConnection();
   };
 
   // Handle received offer (for non-initiator)
@@ -254,48 +286,101 @@ const VideoCall = ({ interactionId, participantId, isInitiator = false, onEndCal
     setIsConnected(false);
   };
 
+  // Retry connection
+  const retryConnection = () => {
+    cleanupCall();
+    setIsAudioOnly(false);
+    setupMediaAndPeerConnection();
+  };
+
   return (
     <div className="flex flex-col h-full">
-      <div className="relative flex-1 bg-black rounded-lg overflow-hidden">
-        {/* Remote video (large) */}
-        {remoteStream ? (
-          <video
-            ref={remoteVideoRef}
-            autoPlay
-            playsInline
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gray-900">
-            <p className="text-white text-center">
-              {isConnecting ? 'Connecting...' : 'Waiting for participant to join...'}
+      {hasMediaError ? (
+        <div className="flex-1 bg-gray-900 rounded-lg overflow-hidden flex flex-col items-center justify-center p-6 text-white space-y-6">
+          <div className="bg-red-500/20 p-4 rounded-lg text-center">
+            <h3 className="text-lg font-medium mb-2">Camera or Microphone Error</h3>
+            <p className="text-sm mb-4">
+              We couldn't access your camera or microphone. This could be due to:
             </p>
+            <ul className="text-sm list-disc text-left pl-4 mb-4">
+              <li>Another application is using your camera</li>
+              <li>Your camera is disconnected or disabled</li>
+              <li>You need to allow browser access in your system settings</li>
+            </ul>
           </div>
-        )}
-        
-        {/* Local video (small overlay) */}
-        <div className="absolute bottom-4 right-4 w-1/4 max-w-[160px] h-auto aspect-video rounded-lg overflow-hidden border-2 border-white/20 shadow-lg">
-          <video
-            ref={localVideoRef}
-            autoPlay
-            playsInline
-            muted
-            className="w-full h-full object-cover"
-          />
           
-          {/* Muted indicators for local video */}
-          {!isVideoEnabled && (
-            <div className="absolute inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center">
-              <VideoOff className="w-6 h-6 text-white" />
-            </div>
-          )}
-          {!isAudioEnabled && (
-            <div className="absolute bottom-1 left-1">
-              <MicOff className="w-4 h-4 text-white" />
-            </div>
-          )}
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Button 
+              onClick={retryConnection} 
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Retry Video Call
+            </Button>
+            
+            <Button 
+              onClick={tryAudioOnly} 
+              variant="outline"
+            >
+              Try Audio Only
+            </Button>
+            
+            <Button 
+              onClick={endCall} 
+              variant="destructive"
+            >
+              Cancel
+            </Button>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="relative flex-1 bg-black rounded-lg overflow-hidden">
+          {/* Remote video (large) */}
+          {remoteStream ? (
+            <video
+              ref={remoteVideoRef}
+              autoPlay
+              playsInline
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gray-900">
+              <p className="text-white text-center">
+                {isConnecting ? 'Connecting...' : 'Waiting for participant to join...'}
+              </p>
+            </div>
+          )}
+          
+          {/* Local video (small overlay) */}
+          <div className="absolute bottom-4 right-4 w-1/4 max-w-[160px] h-auto aspect-video rounded-lg overflow-hidden border-2 border-white/20 shadow-lg">
+            {isAudioOnly ? (
+              <div className="h-full w-full bg-gray-800 flex items-center justify-center">
+                <Mic className="w-8 h-8 text-white opacity-50" />
+              </div>
+            ) : (
+              <video
+                ref={localVideoRef}
+                autoPlay
+                playsInline
+                muted
+                className="w-full h-full object-cover"
+              />
+            )}
+            
+            {/* Muted indicators for local video */}
+            {!isVideoEnabled && !isAudioOnly && (
+              <div className="absolute inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center">
+                <VideoOff className="w-6 h-6 text-white" />
+              </div>
+            )}
+            {!isAudioEnabled && (
+              <div className="absolute bottom-1 left-1">
+                <MicOff className="w-4 h-4 text-white" />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
       
       {/* Controls */}
       <div className="flex justify-center items-center gap-4 mt-4">
@@ -304,6 +389,7 @@ const VideoCall = ({ interactionId, participantId, isInitiator = false, onEndCal
           size="icon"
           onClick={toggleAudio}
           title={isAudioEnabled ? "Mute microphone" : "Unmute microphone"}
+          disabled={hasMediaError}
         >
           {isAudioEnabled ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
         </Button>
@@ -317,14 +403,17 @@ const VideoCall = ({ interactionId, participantId, isInitiator = false, onEndCal
           <PhoneOff className="h-5 w-5" />
         </Button>
         
-        <Button
-          variant={isVideoEnabled ? "outline" : "destructive"}
-          size="icon"
-          onClick={toggleVideo}
-          title={isVideoEnabled ? "Turn off camera" : "Turn on camera"}
-        >
-          {isVideoEnabled ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
-        </Button>
+        {!isAudioOnly && (
+          <Button
+            variant={isVideoEnabled ? "outline" : "destructive"}
+            size="icon"
+            onClick={toggleVideo}
+            title={isVideoEnabled ? "Turn off camera" : "Turn on camera"}
+            disabled={hasMediaError}
+          >
+            {isVideoEnabled ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
+          </Button>
+        )}
       </div>
     </div>
   );
