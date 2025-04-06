@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,6 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { useTheme } from '@/contexts/ThemeContext';
 import { 
   Card, 
   CardContent, 
@@ -211,6 +212,8 @@ const Profile = () => {
     }
   };
 
+  const { theme, setTheme } = useTheme();
+
   if (loading) {
     return (
       <Layout>
@@ -397,18 +400,56 @@ const Profile = () => {
               )}
 
               {isAdmin && (
-                <div className="mt-6 p-4 bg-purple-50 rounded-lg border border-purple-100">
-                  <h3 className="text-lg font-semibold text-purple-800 mb-2">Admin Controls</h3>
-                  <p className="text-sm text-purple-700 mb-3">You have admin privileges.</p>
+                <div className="mt-6 p-4 bg-purple-50 rounded-lg border border-purple-100 dark:bg-purple-900/20 dark:border-purple-800/30">
+                  <h3 className="text-lg font-semibold text-purple-800 dark:text-purple-300 mb-2">Admin Controls</h3>
+                  <p className="text-sm text-purple-700 dark:text-purple-400 mb-3">You have admin privileges.</p>
                   <Button 
                     variant="outline" 
-                    className="bg-white hover:bg-purple-50 text-purple-700 border-purple-300"
+                    className="bg-white dark:bg-purple-900/30 hover:bg-purple-50 dark:hover:bg-purple-800/40 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-700"
                     onClick={() => navigate('/dashboard')}
                   >
                     Go to Admin Dashboard
                   </Button>
                 </div>
               )}
+              
+              <div className="pt-4 border-t">
+                <h3 className="font-medium mb-2">Theme Settings</h3>
+                <div className="flex flex-col space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">Light Mode</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Use light theme</p>
+                    </div>
+                    <Switch
+                      checked={theme === 'light'}
+                      onCheckedChange={() => setTheme('light')}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">Dark Mode</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Use dark theme</p>
+                    </div>
+                    <Switch
+                      checked={theme === 'dark'}
+                      onCheckedChange={() => setTheme('dark')}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">Use System Settings</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Follow your system's theme settings</p>
+                    </div>
+                    <Switch
+                      checked={theme === 'system'}
+                      onCheckedChange={() => setTheme('system')}
+                    />
+                  </div>
+                </div>
+              </div>
             </CardContent>
             
             <CardFooter>
