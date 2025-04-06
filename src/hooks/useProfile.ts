@@ -29,6 +29,7 @@ export const useProfile = () => {
   const [hourlyRate, setHourlyRate] = useState('');
   const [availability, setAvailability] = useState<Availability>('offline');
   const [isAdmin, setIsAdmin] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   useEffect(() => {
     checkUser();
@@ -74,6 +75,7 @@ export const useProfile = () => {
         setIndustry(data.industry || '');
         setExpertise(data.expertise || []);
         setIsAdmin(data.is_admin || false);
+        setAvatarUrl(data.avatar_url);
         
         // Check if user exists in consultants table
         const { data: consultantData } = await supabase
@@ -91,6 +93,47 @@ export const useProfile = () => {
       toast.error('Failed to load profile');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const updateAvatarUrl = async (url: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        navigate('/auth');
+        return;
+      }
+      
+      const { error } = await supabase
+        .from('profiles')
+        .update({ avatar_url: url })
+        .eq('id', user.id);
+        
+      if (error) {
+        throw error;
+      }
+      
+      setAvatarUrl(url);
+      
+      // If user is also a consultant, update the avatar_url in consultants table
+      if (isConsultant) {
+        const { error: consultantError } = await supabase
+          .from('consultants')
+          .update({ avatar_url: url })
+          .eq('id', user.id);
+          
+        if (consultantError) {
+          console.error('Error updating consultant avatar:', consultantError);
+        }
+      }
+      
+      // Update the profile state
+      setProfile(prev => prev ? { ...prev, avatar_url: url } : null);
+      
+    } catch (error) {
+      console.error('Error updating avatar URL:', error);
+      toast.error('Failed to update profile picture');
     }
   };
 
@@ -128,6 +171,7 @@ export const useProfile = () => {
         industry,
         expertise,
         availability,
+        avatar_url: avatarUrl
       };
       
       const { error } = await supabase
@@ -147,7 +191,7 @@ export const useProfile = () => {
           .upsert({
             id: user.id,
             display_name: displayName || 'User',
-            avatar_url: profile?.avatar_url,
+            avatar_url: avatarUrl,
             bio,
             industry,
             expertise,
@@ -203,6 +247,7 @@ export const useProfile = () => {
     hourlyRate,
     availability,
     isAdmin,
+    avatarUrl,
     setFirstName,
     setLastName,
     setDisplayName,
@@ -213,6 +258,7 @@ export const useProfile = () => {
     setIsConsultant,
     setHourlyRate,
     setAvailability,
+    updateAvatarUrl,
     handleAddExpertise,
     handleRemoveExpertise,
     handleSaveProfile

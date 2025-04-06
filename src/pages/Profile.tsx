@@ -1,7 +1,6 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import Layout from '@/components/Layout';
-import { ThemeToggle } from '@/components/ThemeToggle';
 import ProfileCard from '@/components/profile/ProfileCard';
 import ProfileBasicInfo from '@/components/profile/ProfileBasicInfo';
 import ExpertiseSection from '@/components/profile/ExpertiseSection';
@@ -9,6 +8,8 @@ import ConsultantSection from '@/components/profile/ConsultantSection';
 import AdminSection from '@/components/profile/AdminSection';
 import ThemeSettings from '@/components/profile/ThemeSettings';
 import { useProfile } from '@/hooks/useProfile';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const Profile = () => {
   const {
@@ -37,8 +38,57 @@ const Profile = () => {
     setAvailability,
     handleAddExpertise,
     handleRemoveExpertise,
-    handleSaveProfile
+    handleSaveProfile,
+    updateAvatarUrl
   } = useProfile();
+
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+  const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      if (!event.target.files || event.target.files.length === 0) {
+        return;
+      }
+      
+      const file = event.target.files[0];
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${profile?.id}.${fileExt}`;
+      
+      setUploadingAvatar(true);
+      
+      // Check if user is authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('You must be logged in to upload a profile picture');
+        return;
+      }
+      
+      // Upload the image to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+        
+      if (uploadError) {
+        throw uploadError;
+      }
+      
+      // Get the public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+        
+      // Update the avatar_url in the profile
+      if (publicUrl) {
+        updateAvatarUrl(publicUrl);
+        toast.success('Profile picture updated successfully');
+      }
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      toast.error('Failed to upload profile picture');
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -54,7 +104,7 @@ const Profile = () => {
     <Layout>
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-3xl mx-auto">
-          <h1 className="text-3xl font-bold mb-6">Your Profile</h1>
+          <h1 className="text-3xl font-bold mb-6 dark:text-white">Your Profile</h1>
           
           <ProfileCard
             profile={profile}
@@ -63,6 +113,8 @@ const Profile = () => {
             isAdmin={isAdmin}
             saving={saving}
             onSave={handleSaveProfile}
+            onAvatarChange={handleAvatarChange}
+            uploadingAvatar={uploadingAvatar}
           >
             <ProfileBasicInfo
               firstName={firstName}
