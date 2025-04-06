@@ -64,6 +64,7 @@ export type Database = {
           id: string
           interaction_type: Database["public"]["Enums"]["interaction_type"]
           is_active: boolean | null
+          metadata: Json | null
           seeker_id: string | null
           status: string
           updated_at: string
@@ -77,6 +78,7 @@ export type Database = {
           id?: string
           interaction_type: Database["public"]["Enums"]["interaction_type"]
           is_active?: boolean | null
+          metadata?: Json | null
           seeker_id?: string | null
           status?: string
           updated_at?: string
@@ -90,6 +92,7 @@ export type Database = {
           id?: string
           interaction_type?: Database["public"]["Enums"]["interaction_type"]
           is_active?: boolean | null
+          metadata?: Json | null
           seeker_id?: string | null
           status?: string
           updated_at?: string

@@ -129,6 +129,9 @@ const Browse = () => {
         const newAnonymousId = Math.random().toString(36).substring(2, 15);
         interactionData.anonymous_seeker_id = newAnonymousId;
         
+        // Store the anonymous ID in localStorage for future use
+        localStorage.setItem('anonymousId', newAnonymousId);
+        
         // Add the anonymous ID to the URL for future visits
         const currentParams = new URLSearchParams(window.location.search);
         currentParams.set('anonymous', newAnonymousId);
@@ -147,13 +150,14 @@ const Browse = () => {
         .single();
       
       if (error) {
+        console.error('Supabase error:', error);
         throw error;
       }
       
       toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} interaction initiated!`);
       
-      // Redirect to chat/call page
-      window.location.href = `/dashboard?interaction=${data.id}`;
+      // Redirect to the interaction page
+      window.location.href = `/interaction?id=${data.id}`;
       
     } catch (error) {
       console.error('Error initiating interaction:', error);
