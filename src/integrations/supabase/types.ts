@@ -234,7 +234,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_consultants: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          availability: string
+          avatar_url: string | null
+          bio: string | null
+          created_at: string | null
+          display_name: string
+          expertise: string[] | null
+          hourly_rate: number | null
+          id: string
+          industry: string | null
+          rating: number | null
+          review_count: number | null
+          updated_at: string | null
+        }[]
+      }
     }
     Enums: {
       availability_status: "available" | "busy" | "offline"

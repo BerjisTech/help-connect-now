@@ -49,10 +49,8 @@ const ConsultantsSection = () => {
   useEffect(() => {
     const fetchConsultants = async () => {
       try {
-        // Use a raw query to fetch data from the consultants table to avoid TypeScript issues
-        const { data, error } = await supabase
-          .rpc('get_consultants')
-          .limit(8);
+        // Use the RPC function to fetch consultants
+        const { data, error } = await supabase.rpc('get_consultants');
 
         if (error) {
           throw error;
@@ -72,32 +70,8 @@ const ConsultantsSection = () => {
           
           setConsultants(formattedConsultants);
         } else {
-          // Fallback to direct fetch ignoring types
-          const { data: rawData, error: rawError } = await supabase
-            .from('consultants' as any)
-            .select('*')
-            .limit(8);
-            
-          if (rawError) {
-            throw rawError;
-          }
-          
-          if (rawData && rawData.length > 0) {
-            const formattedConsultants = rawData.map((item: any) => ({
-              id: item.id,
-              name: item.display_name,
-              industry: item.industry || 'Consultant',
-              rating: item.rating || 4.5,
-              image: item.avatar_url || `https://images.unsplash.com/photo-${Math.floor(Math.random() * 1000000)}?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80`,
-              expertise: item.expertise || ['Consulting'],
-              availability: item.availability
-            }));
-            
-            setConsultants(formattedConsultants);
-          } else {
-            // If no consultants found in DB, use fallback data
-            setConsultants(fallbackConsultants);
-          }
+          // If no consultants found in DB, use fallback data
+          setConsultants(fallbackConsultants);
         }
       } catch (error) {
         console.error('Error fetching consultants:', error);
