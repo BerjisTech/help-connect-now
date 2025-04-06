@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { Button } from './ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { ThemeToggle } from './ThemeToggle';
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -35,16 +36,18 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-white shadow-sm">
+    <nav className="bg-white dark:bg-gray-900 shadow-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         <Link to="/" className="text-xl font-bold text-primary">
           Help Connect Now
         </Link>
         
         <div className="flex items-center gap-4">
-          <Link to="/browse" className="text-gray-600 hover:text-primary transition-colors">
+          <Link to="/browse" className="text-gray-600 hover:text-primary transition-colors dark:text-gray-300 dark:hover:text-primary">
             Browse Consultants
           </Link>
+          
+          <ThemeToggle />
           
           {user ? (
             <DropdownMenu>
