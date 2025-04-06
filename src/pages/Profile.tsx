@@ -247,7 +247,7 @@ const Profile = () => {
                     <SelectValue placeholder="Select your industry" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     <SelectItem value="Technology">Technology</SelectItem>
                     <SelectItem value="Finance">Finance</SelectItem>
                     <SelectItem value="Healthcare">Healthcare</SelectItem>

@@ -153,7 +153,7 @@ const Browse = () => {
                 <SelectValue placeholder="Filter by Industry" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Industries</SelectItem>
+                <SelectItem value="all">All Industries</SelectItem>
                 <SelectItem value="Technology">Technology</SelectItem>
                 <SelectItem value="Finance">Finance</SelectItem>
                 <SelectItem value="Healthcare">Healthcare</SelectItem>
