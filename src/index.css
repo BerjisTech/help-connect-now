@@ -93,6 +93,19 @@
   body {
     @apply bg-background text-foreground transition-colors duration-200;
   }
+  
+  /* Apply dark mode to all main content areas */
+  .dark main,
+  .dark section,
+  .dark div,
+  .dark aside {
+    @apply bg-background text-foreground;
+  }
+  
+  /* Ensure consistent dark mode for cards */
+  .dark .card {
+    @apply bg-card text-card-foreground border-border;
+  }
 }
 
 /* Custom dark mode enhancements */
@@ -116,6 +129,46 @@
 
 .dark a:not([class*="text-"]) {
   @apply text-blue-400 hover:text-blue-300;
+}
+
+/* Additional dark mode fixes */
+.dark .bg-white {
+  @apply bg-gray-800;
+}
+
+.dark .text-gray-800,
+.dark .text-gray-900,
+.dark .text-black {
+  @apply text-gray-100;
+}
+
+.dark .border-gray-200 {
+  @apply border-gray-700;
+}
+
+.dark .shadow {
+  @apply shadow-gray-900;
+}
+
+.dark .container,
+.dark .max-w-3xl,
+.dark .max-w-4xl,
+.dark .max-w-5xl,
+.dark .max-w-6xl,
+.dark .max-w-7xl {
+  @apply bg-background;
+}
+
+/* For areas with white backgrounds that need dark mode */
+.dark [class*="bg-white"] {
+  @apply bg-gray-800 text-white;
+}
+
+/* Fix for specific light background elements */
+.dark .bg-gray-50,
+.dark .bg-gray-100,
+.dark .bg-gray-200 {
+  @apply bg-gray-800 text-gray-100;
 }
 
 .animated-gradient {
