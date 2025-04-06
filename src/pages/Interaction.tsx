@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -25,6 +24,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from '@/components/ui/textarea';
+import VideoCall from '@/components/interaction/VideoCall';
 
 interface InteractionData {
   id: string;
@@ -32,7 +32,7 @@ interface InteractionData {
   status: string;
   interaction_type: 'video' | 'audio' | 'text';
   description: string;
-  metadata: any; // This field is required by our interface
+  metadata: any;
   seeker_id?: string;
   helper_id?: string;
   anonymous_seeker_id?: string;
@@ -60,6 +60,8 @@ const InteractionPage = () => {
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
+  const [showVideoCall, setShowVideoCall] = useState(false);
+  const [endCallConfirmOpen, setEndCallConfirmOpen] = useState(false);
 
   useEffect(() => {
     if (interactionId) {
@@ -70,7 +72,6 @@ const InteractionPage = () => {
   const fetchInteractionData = async () => {
     try {
       setLoading(true);
-      // Fetch interaction data
       const { data: interactionData, error: interactionError } = await supabase
         .from('interactions')
         .select('*')
@@ -79,7 +80,6 @@ const InteractionPage = () => {
 
       if (interactionError) throw interactionError;
       
-      // Ensure interactionData has a metadata field, even if it's null
       const safeInteractionData: InteractionData = {
         ...interactionData,
         metadata: interactionData.metadata || {}
@@ -87,7 +87,6 @@ const InteractionPage = () => {
       
       setInteraction(safeInteractionData);
 
-      // Fetch consultant data using the consultant_id from metadata
       if (safeInteractionData?.metadata?.consultant_id) {
         const { data: consultantData, error: consultantError } = await supabase
           .from('consultants')
@@ -103,7 +102,6 @@ const InteractionPage = () => {
         }
       }
 
-      // Fetch messages for this interaction
       const { data: messagesData, error: messagesError } = await supabase
         .from('messages')
         .select('*')
@@ -132,13 +130,11 @@ const InteractionPage = () => {
       const { data: session } = await supabase.auth.getSession();
       const userId = session?.session?.user?.id;
 
-      // Create message data
       const messageData: any = {
         interaction_id: interactionId,
         content: newMessage.trim(),
       };
 
-      // Set sender info based on authentication status
       if (userId) {
         messageData.sender_id = userId;
       } else if (interaction?.anonymous_seeker_id) {
@@ -153,7 +149,6 @@ const InteractionPage = () => {
 
       if (error) throw error;
       
-      // Add new message to the list
       setMessages([...messages, data]);
       setNewMessage('');
       toast.success('Message sent');
@@ -162,6 +157,37 @@ const InteractionPage = () => {
       toast.error('Failed to send message');
     } finally {
       setSendingMessage(false);
+    }
+  };
+
+  const startVideoCall = () => {
+    if (interaction?.interaction_type !== 'video') {
+      toast.error('This interaction is not set up for video calls');
+      return;
+    }
+    setShowVideoCall(true);
+  };
+
+  const endVideoCall = () => {
+    setEndCallConfirmOpen(true);
+  };
+
+  const confirmEndCall = async () => {
+    setShowVideoCall(false);
+    setEndCallConfirmOpen(false);
+    toast.success('Video call ended');
+    
+    if (interaction?.id) {
+      try {
+        await supabase
+          .from('interactions')
+          .update({ 
+            status: 'active'
+          })
+          .eq('id', interaction.id);
+      } catch (error) {
+        console.error('Error updating interaction status:', error);
+      }
     }
   };
 
@@ -204,7 +230,6 @@ const InteractionPage = () => {
     <Layout>
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Interaction details */}
           <div className="lg:col-span-1">
             <Card className="h-full">
               <CardHeader>
@@ -273,8 +298,8 @@ const InteractionPage = () => {
                 </div>
               </CardContent>
               <CardFooter className="flex flex-col gap-2 items-stretch">
-                {interaction.interaction_type === 'video' && (
-                  <Button className="w-full">
+                {interaction.interaction_type === 'video' && !showVideoCall && (
+                  <Button className="w-full" onClick={startVideoCall}>
                     Start Video Call
                   </Button>
                 )}
@@ -285,7 +310,7 @@ const InteractionPage = () => {
                   </Button>
                 )}
                 
-                <Dialog>
+                <Dialog open={endCallConfirmOpen} onOpenChange={setEndCallConfirmOpen}>
                   <DialogTrigger asChild>
                     <Button variant="outline" className="w-full">
                       End Interaction
@@ -299,8 +324,8 @@ const InteractionPage = () => {
                       </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
-                      <Button variant="outline">Cancel</Button>
-                      <Button variant="destructive">End Consultation</Button>
+                      <Button variant="outline" onClick={() => setEndCallConfirmOpen(false)}>Cancel</Button>
+                      <Button variant="destructive" onClick={confirmEndCall}>End Consultation</Button>
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
@@ -308,16 +333,25 @@ const InteractionPage = () => {
             </Card>
           </div>
           
-          {/* Chat area */}
           <div className="lg:col-span-2">
             <Card className="h-full flex flex-col">
               <CardHeader>
                 <CardTitle>
-                  {interaction.interaction_type === 'text' ? 'Chat' : 'Messages'}
+                  {showVideoCall ? 'Video Call' : 
+                   interaction.interaction_type === 'text' ? 'Chat' : 'Messages'}
                 </CardTitle>
               </CardHeader>
               <CardContent className="flex-1 overflow-y-auto">
-                {messages.length === 0 ? (
+                {showVideoCall ? (
+                  <div className="h-[400px]">
+                    <VideoCall
+                      interactionId={interaction.id}
+                      participantId={consultant?.id}
+                      isInitiator={true}
+                      onEndCall={() => setShowVideoCall(false)}
+                    />
+                  </div>
+                ) : messages.length === 0 ? (
                   <div className="text-center py-8">
                     <p className="text-muted-foreground">No messages yet. Start the conversation!</p>
                   </div>
@@ -345,29 +379,32 @@ const InteractionPage = () => {
                   </div>
                 )}
               </CardContent>
-              <CardFooter className="pt-2">
-                <div className="flex w-full gap-2">
-                  <Textarea 
-                    placeholder="Type your message here..." 
-                    className="flex-1"
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        sendMessage();
-                      }
-                    }}
-                  />
-                  <Button 
-                    className="self-end" 
-                    onClick={sendMessage}
-                    disabled={sendingMessage || !newMessage.trim()}
-                  >
-                    {sendingMessage ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Send'}
-                  </Button>
-                </div>
-              </CardFooter>
+              
+              {!showVideoCall && (
+                <CardFooter className="pt-2">
+                  <div className="flex w-full gap-2">
+                    <Textarea 
+                      placeholder="Type your message here..." 
+                      className="flex-1"
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          sendMessage();
+                        }
+                      }}
+                    />
+                    <Button 
+                      className="self-end" 
+                      onClick={sendMessage}
+                      disabled={sendingMessage || !newMessage.trim()}
+                    >
+                      {sendingMessage ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Send'}
+                    </Button>
+                  </div>
+                </CardFooter>
+              )}
             </Card>
           </div>
         </div>
