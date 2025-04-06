@@ -49,14 +49,14 @@ const ConsultantsSection = () => {
   useEffect(() => {
     const fetchConsultants = async () => {
       try {
-        // Use the RPC function to fetch consultants
+        // Use the RPC function to fetch consultants and cast the return type
         const { data, error } = await supabase.rpc('get_consultants');
 
         if (error) {
           throw error;
         }
 
-        if (data && data.length > 0) {
+        if (data && Array.isArray(data) && data.length > 0) {
           // Transform the data to our Consultant format
           const formattedConsultants = data.map((item: any) => ({
             id: item.id,
