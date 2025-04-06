@@ -17,6 +17,10 @@ export const useWebRTC = (interactionId: string, isInitiator: boolean, onEndCall
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const channelRef = useRef<RTCDataChannel | null>(null);
+  // Track whether remote description is set to prevent ICE candidate errors
+  const remoteDescriptionSet = useRef<boolean>(false);
+  // Store received ICE candidates that arrive before remote description is set
+  const pendingIceCandidates = useRef<RTCIceCandidateInit[]>([]);
 
   // Set up signaling channel using Supabase Realtime
   useEffect(() => {
@@ -70,6 +74,17 @@ export const useWebRTC = (interactionId: string, isInitiator: boolean, onEndCall
     
     try {
       await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(offer));
+      remoteDescriptionSet.current = true;
+      
+      // Add any pending ICE candidates
+      if (pendingIceCandidates.current.length > 0) {
+        console.log(`Adding ${pendingIceCandidates.current.length} pending ICE candidates`);
+        for (const candidate of pendingIceCandidates.current) {
+          await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(candidate));
+        }
+        pendingIceCandidates.current = [];
+      }
+      
       const answer = await peerConnectionRef.current.createAnswer();
       await peerConnectionRef.current.setLocalDescription(answer);
       sendSignalingMessage('answer', { answer });
@@ -84,6 +99,16 @@ export const useWebRTC = (interactionId: string, isInitiator: boolean, onEndCall
     
     try {
       await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(answer));
+      remoteDescriptionSet.current = true;
+      
+      // Add any pending ICE candidates
+      if (pendingIceCandidates.current.length > 0) {
+        console.log(`Adding ${pendingIceCandidates.current.length} pending ICE candidates`);
+        for (const candidate of pendingIceCandidates.current) {
+          await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(candidate));
+        }
+        pendingIceCandidates.current = [];
+      }
     } catch (error) {
       console.error('Error handling answer:', error);
     }
@@ -94,6 +119,13 @@ export const useWebRTC = (interactionId: string, isInitiator: boolean, onEndCall
     if (!peerConnectionRef.current) return;
     
     try {
+      // If remote description is not set, store the ICE candidate for later
+      if (!remoteDescriptionSet.current) {
+        console.log('Remote description not set yet, storing ICE candidate');
+        pendingIceCandidates.current.push(candidate);
+        return;
+      }
+      
       await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(candidate));
     } catch (error) {
       console.error('Error adding ICE candidate:', error);
@@ -139,6 +171,8 @@ export const useWebRTC = (interactionId: string, isInitiator: boolean, onEndCall
       
       const peerConnection = new RTCPeerConnection(configuration);
       peerConnectionRef.current = peerConnection;
+      remoteDescriptionSet.current = false;
+      pendingIceCandidates.current = [];
 
       // Add local stream tracks to peer connection
       stream.getTracks().forEach(track => {
@@ -161,6 +195,16 @@ export const useWebRTC = (interactionId: string, isInitiator: boolean, onEndCall
       peerConnection.onicecandidate = (event) => {
         if (event.candidate) {
           sendSignalingMessage('ice-candidate', { candidate: event.candidate });
+        }
+      };
+
+      // Handle ICE connection state changes
+      peerConnection.oniceconnectionstatechange = () => {
+        console.log('ICE connection state:', peerConnection.iceConnectionState);
+        if (peerConnection.iceConnectionState === 'failed' || 
+            peerConnection.iceConnectionState === 'disconnected') {
+          console.log('ICE connection failed or disconnected, attempting to restart ICE');
+          peerConnection.restartIce();
         }
       };
 
@@ -200,11 +244,22 @@ export const useWebRTC = (interactionId: string, isInitiator: boolean, onEndCall
       console.error('Error setting up media or peer connection:', error);
       
       // If we failed with video, try audio-only as fallback
-      if (!isAudioOnly && error instanceof Error && error.name === 'NotReadableError') {
-        setHasMediaError(true);
-        toast.error('Could not access camera. Try using audio-only mode or check your camera settings.');
+      if (!isAudioOnly && error instanceof Error) {
+        if (error.name === 'NotReadableError' || error.name === 'NotAllowedError') {
+          setHasMediaError(true);
+          
+          if (error.name === 'NotReadableError') {
+            toast.error('Could not access camera. Try using audio-only mode or check your camera settings.');
+          } else {
+            toast.error('Permission denied for camera or microphone. Please grant access permissions.');
+          }
+        } else {
+          toast.error('Could not access microphone or camera. Please check your device settings.');
+          setHasMediaError(true);
+          setIsConnecting(false);
+        }
       } else {
-        toast.error('Could not access microphone or camera. Please check your device settings.');
+        toast.error('Could not establish connection. Please try again later.');
         setHasMediaError(true);
         setIsConnecting(false);
       }
