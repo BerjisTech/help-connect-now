@@ -108,14 +108,15 @@ const Browse = () => {
     );
   });
 
-  const initiateInteraction = async (helperId: string, type: 'video' | 'audio' | 'text') => {
+  const initiateInteraction = async (consultantId: string, type: 'video' | 'audio' | 'text') => {
     try {
       const { data: user } = await supabase.auth.getUser();
       
+      // Create interaction data without setting helper_id directly
+      // to avoid the foreign key constraint
       const interactionData: any = {
-        helper_id: helperId,
         interaction_type: type,
-        description: description || 'No description provided',
+        description: description || `Interaction with consultant ${consultantId}`,
         status: 'pending'
       };
       
@@ -135,6 +136,10 @@ const Browse = () => {
         window.history.pushState({}, '', newUrl);
       }
       
+      // Store the consultant ID in a metadata field rather than helper_id
+      // to avoid foreign key constraint
+      interactionData.metadata = { consultant_id: consultantId };
+      
       const { data, error } = await supabase
         .from('interactions')
         .insert(interactionData)
@@ -146,6 +151,9 @@ const Browse = () => {
       }
       
       toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} interaction initiated!`);
+      
+      // Redirect to chat/call page
+      window.location.href = `/dashboard?interaction=${data.id}`;
       
     } catch (error) {
       console.error('Error initiating interaction:', error);
