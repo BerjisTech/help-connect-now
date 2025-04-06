@@ -11,6 +11,7 @@ import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
 import Dashboard from "./pages/Dashboard";
 import Interaction from "./pages/Interaction";
+import ConsultantProfile from "./pages/ConsultantProfile";
 import NotFound from "./pages/NotFound";
 
 const App = () => {
@@ -31,6 +32,7 @@ const App = () => {
             <Route path="/profile" element={<Profile />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/interaction" element={<Interaction />} />
+            <Route path="/consultant/:id" element={<ConsultantProfile />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

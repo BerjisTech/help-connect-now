@@ -31,3 +31,51 @@ export interface MessageData {
   sender_id?: string;
   anonymous_sender_id?: string;
 }
+
+export interface ProfileConfig {
+  // Hero section configuration
+  heroConfig: {
+    backgroundImage?: string;
+    backgroundColor?: string;
+    layout: 'left-image' | 'right-image' | 'centered';
+    textAlignment: 'left' | 'center' | 'right';
+    taglineAlignment?: 'left' | 'center' | 'right';
+    intro: string;
+    tagline: string;
+    showImage: boolean;
+  };
+  // Trust indicators configuration
+  trustConfig: {
+    showTrustIndicators: boolean;
+    companyClients?: number;
+    individualClients?: number;
+  };
+  // Reviews configuration
+  reviewsConfig: {
+    showReviews: boolean;
+  };
+  // Pricing configuration
+  pricingConfig: {
+    models: PricingModel[];
+  };
+  // FAQ configuration
+  faqConfig: {
+    questions: FAQItem[];
+  };
+}
+
+export interface PricingModel {
+  id: string;
+  title: string;
+  price: number;
+  currency: string;
+  period?: string;
+  features: string[];
+  isHighlighted?: boolean;
+}
+
+export interface FAQItem {
+  id: string;
+  question: string;
+  answer: string;
+}
