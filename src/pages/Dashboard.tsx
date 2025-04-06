@@ -27,9 +27,10 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { Database } from '@/integrations/supabase/types';
 
+type Profile = Database['public']['Tables']['profiles']['Row'];
 type Interaction = Database['public']['Tables']['interactions']['Row'] & {
-  helper: Database['public']['Tables']['profiles']['Row'],
-  seeker: Database['public']['Tables']['profiles']['Row'] | null,
+  helper: Profile,
+  seeker: Profile | null,
   messages: Database['public']['Tables']['messages']['Row'][]
 };
 
@@ -38,7 +39,7 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('active');
   const [interactions, setInteractions] = useState<Interaction[]>([]);
   const [loading, setLoading] = useState(true);
-  const [userProfile, setUserProfile] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<Profile | null>(null);
 
   useEffect(() => {
     checkUser();
@@ -108,7 +109,7 @@ const Dashboard = () => {
         throw error;
       }
       
-      setInteractions(data as any);
+      setInteractions(data as Interaction[]);
     } catch (error) {
       console.error('Error fetching interactions:', error);
       toast.error('Failed to load interactions');

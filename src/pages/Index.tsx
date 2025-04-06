@@ -1,18 +1,9 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
-import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'sonner';
 
@@ -51,7 +42,6 @@ const Index = () => {
             Get personalized assistance from industry experts through video, audio, or text chat.
             Solve your problems quickly with the right professional guidance.
           </p>
-          
           <div className="max-w-2xl mx-auto">
             <div className="mb-6">
               <Input
@@ -61,14 +51,13 @@ const Index = () => {
                 onChange={(e) => setProblemDescription(e.target.value)}
               />
             </div>
-            
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button asChild size="lg" className="flex-1">
                 <a href="/auth?tab=signup">Sign Up & Get Help</a>
               </Button>
-              <Button 
-                variant="outline" 
-                size="lg" 
+              <Button
+                variant="outline"
+                size="lg"
                 className="flex-1"
                 onClick={handleAnonymousHelp}
               >
@@ -82,7 +71,6 @@ const Index = () => {
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12">How It Works</h2>
-          
           <div className="grid md:grid-cols-3 gap-8">
             <Card>
               <CardHeader>

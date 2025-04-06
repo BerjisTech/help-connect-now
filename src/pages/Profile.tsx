@@ -28,6 +28,7 @@ import { toast } from 'sonner';
 import { Database } from '@/integrations/supabase/types';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
+type Availability = Database['public']['Enums']['availability_status'];
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -45,7 +46,7 @@ const Profile = () => {
   const [expertise, setExpertise] = useState<string[]>([]);
   const [isHelper, setIsHelper] = useState(false);
   const [hourlyRate, setHourlyRate] = useState('');
-  const [availability, setAvailability] = useState<'available' | 'busy' | 'offline'>('offline');
+  const [availability, setAvailability] = useState<Availability>('offline');
 
   useEffect(() => {
     checkUser();
@@ -80,18 +81,20 @@ const Profile = () => {
         throw error;
       }
       
-      setProfile(data);
-      
-      // Initialize form with profile data
-      setFirstName(data.first_name || '');
-      setLastName(data.last_name || '');
-      setDisplayName(data.display_name || '');
-      setBio(data.bio || '');
-      setIndustry(data.industry || '');
-      setExpertise(data.expertise || []);
-      setIsHelper(data.user_type === 'helper');
-      setHourlyRate(data.hourly_rate?.toString() || '');
-      setAvailability(data.availability || 'offline');
+      if (data) {
+        setProfile(data);
+        
+        // Initialize form with profile data
+        setFirstName(data.first_name || '');
+        setLastName(data.last_name || '');
+        setDisplayName(data.display_name || '');
+        setBio(data.bio || '');
+        setIndustry(data.industry || '');
+        setExpertise(data.expertise || []);
+        setIsHelper(data.user_type === 'helper');
+        setHourlyRate(data.hourly_rate?.toString() || '');
+        setAvailability(data.availability || 'offline');
+      }
     } catch (error) {
       console.error('Error fetching profile:', error);
       toast.error('Failed to load profile');
