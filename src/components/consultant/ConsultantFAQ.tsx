@@ -12,7 +12,7 @@ const ConsultantFAQ = ({ questions }: ConsultantFAQProps) => {
   }
   
   return (
-    <section className="py-16 bg-white">
+    <section className="py-16 bg-white dark:bg-indigo-950 dark:text-accent">
       <div className="container mx-auto px-4 max-w-3xl">
         <h2 className="text-3xl font-bold mb-10 text-center">Frequently Asked Questions</h2>
         

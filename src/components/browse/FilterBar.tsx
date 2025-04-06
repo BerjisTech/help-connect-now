@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -32,13 +32,14 @@ export const FilterBar = ({
     <div className="flex flex-col md:flex-row gap-4 mb-8">
       <div className="flex-1">
         <Input
+          className='dark:bg-indigo-950/80 dark:border-indigo-600/60 dark:shadow-none'
           placeholder="Search by name, industry, or expertise..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
       </div>
       <div className="w-full md:w-64">
-        <Select value={industry} onValueChange={setIndustry}>
+        <Select value={industry} onValueChange={setIndustry} >
           <SelectTrigger>
             <SelectValue placeholder="Filter by Industry" />
           </SelectTrigger>
@@ -55,15 +56,15 @@ export const FilterBar = ({
         </Select>
       </div>
       <div className="flex gap-2">
-        <Button 
-          variant={viewMode === 'grid' ? 'default' : 'outline'} 
+        <Button
+          variant={viewMode === 'grid' ? 'default' : 'outline'}
           size="icon"
           onClick={() => setViewMode('grid')}
         >
           <LayoutGridIcon className="h-4 w-4" />
         </Button>
-        <Button 
-          variant={viewMode === 'table' ? 'default' : 'outline'} 
+        <Button
+          variant={viewMode === 'table' ? 'default' : 'outline'}
           size="icon"
           onClick={() => setViewMode('table')}
         >

@@ -63,7 +63,7 @@ export const ConsultantCard = ({ consultant, onInteraction }: ConsultantCardProp
     <>
       <Card 
         key={consultant.id.toString()} 
-        className="overflow-hidden h-full cursor-pointer hover:shadow-md transition-shadow"
+        className="overflow-hidden dark:bg-indigo-700/40 dark:border-indigo-700/40 h-full cursor-pointer hover:shadow-md transition-shadow"
         onClick={handleCardClick}
       >
         <div className="h-48 relative">
@@ -92,18 +92,18 @@ export const ConsultantCard = ({ consultant, onInteraction }: ConsultantCardProp
           </div>
         </div>
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg">{consultant.name}</CardTitle>
+          <CardTitle className="text-lg dark:text-accent">{consultant.name}</CardTitle>
           <CardDescription>{consultant.industry}</CardDescription>
         </CardHeader>
         <CardContent className="pt-0">
           <div className="flex flex-wrap gap-1 mb-2">
             {consultant.expertise.slice(0, 3).map((exp, i) => (
-              <Badge key={i} variant="secondary" className="text-xs">
+              <Badge key={i} variant="secondary" className="text-xs dark:bg-indigo-700/40 dark:text-accent">
                 {exp}
               </Badge>
             ))}
             {consultant.expertise.length > 3 && (
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="outline" className="text-xs dark:bg-indigo-700/40 dark:text-accent">
                 +{consultant.expertise.length - 3} more
               </Badge>
             )}
@@ -113,7 +113,7 @@ export const ConsultantCard = ({ consultant, onInteraction }: ConsultantCardProp
           <Button 
             size="sm" 
             variant="default"
-            className="flex-1"
+            className="flex-1 dark:bg-indigo-950 dark:hover:bg-indigo-800"
             onClick={(e) => {
               e.stopPropagation();
               handleInteractionClick('video');
@@ -125,7 +125,7 @@ export const ConsultantCard = ({ consultant, onInteraction }: ConsultantCardProp
           <Button 
             size="sm" 
             variant="outline"
-            className="flex-1"
+            className="flex-1 dark:bg-indigo-700/40 dark:border-indigo-700/40 dark:text-white/50 dark:hover:bg-indigo-800"
             onClick={(e) => {
               e.stopPropagation();
               handleInteractionClick('text');

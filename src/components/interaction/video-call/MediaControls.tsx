@@ -21,6 +21,7 @@ const MediaControls = ({
         onClick={onToggleAudio}
         title={isAudioEnabled ? "Mute microphone" : "Unmute microphone"}
         disabled={hasMediaError || !localStream}
+        className="bg-white/10 hover:bg-white/20 dark:bg-indigo-950 dark:border-indigo-950 dark:hover:bg-indigo-800"
       >
         {isAudioEnabled ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
       </Button>

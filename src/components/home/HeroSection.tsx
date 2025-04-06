@@ -58,18 +58,18 @@ export const HeroSection = () => {
   return (
     <section className="py-24 relative overflow-hidden">
       <div className={`absolute inset-0 ${backgroundStyles[currentBgIndex]} opacity-10 transition-all duration-3000 animate-gradient-x`}></div>
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxwYXR0ZXJuIGlkPSJwYXR0ZXJuIiB4PSIwIiB5PSIwIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHBhdHRlcm5UcmFuc2Zvcm09InJvdGF0ZSg0NSkiPjxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbD0icmdiYSg5OSwxMDIsMjQxLDAuMDMpIj48L3JlY3Q+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI3BhdHRlcm4pIj48L3JlY3Q+PC9zdmc+')] opacity-30"></div>
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxwYXR0ZXJuIGlkPSJwYXR0ZXJuIiB4PSIwIiB5PSIwIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHBhdHRlcm5UcmFuc2Zvcm09InJvdGF0ZSg0NSkiPjxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbD0icmdiYSg5OSwxMDIsMjQxLDAuMDMpIj48L3JlY3Q+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI3BhdHRlcm4pIj48L3JlY3Q+PC9zdmc+')] dark:bg-indigo-900 opacity-30 dark:opacity-100"></div>
       
-      <div className="absolute w-64 h-64 rounded-full bg-indigo-300/20 -top-10 -left-10 blur-3xl animate-pulse-soft"></div>
-      <div className="absolute w-96 h-96 rounded-full bg-indigo-500/10 bottom-0 right-0 blur-3xl animate-pulse-soft animation-delay-2000"></div>
+      <div className="absolute w-64 h-64 rounded-full bg-indigo-300/20 dark:bg-indigo-300 -top-10 -left-10 blur-3xl animate-pulse-soft"></div>
+      <div className="absolute w-96 h-96 rounded-full bg-indigo-500/10 dark:bg-indigo-500 bottom-0 right-0 blur-3xl animate-pulse-soft animation-delay-2000"></div>
       
       <div className="container mx-auto px-4 relative z-10">
         <div className="flex flex-col items-end">
           <div className="max-w-3xl text-right space-y-8 mb-10">
-            <h1 className="text-5xl md:text-6xl font-bold text-primary leading-tight">
+            <h1 className="text-5xl md:text-6xl font-bold text-primary dark:text-accent leading-tight">
               Connect with Expert Consultants in Minutes
             </h1>
-            <p className="text-xl text-indigo-900/80">
+            <p className="text-xl text-indigo-900/80 dark:text-accent/90">
               Find specialized consultants from all industries ready to help solve your problems through video, audio, or text chat.
             </p>
           </div>
@@ -77,18 +77,18 @@ export const HeroSection = () => {
           <div className="w-full max-w-2xl ml-auto space-y-6 pt-4">
             <Input
               placeholder="Describe what you need help with..."
-              className="text-lg py-6 border-indigo-200 focus:border-indigo-500 shadow-sm"
+              className="focus-none text-lg dark:bg-indigo-950 py-6 border-indigo-200 dark:border-indigo-950  focus:border-indigo-500 dark:focus:border-indigo-950 dark:outline-none dark:text-accent shadow-sm"
               value={problemDescription}
               onChange={(e) => setProblemDescription(e.target.value)}
             />
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button asChild size="lg" className="flex-1 bg-indigo-600 hover:bg-indigo-700">
+              <Button asChild size="lg" className="flex-1 bg-indigo-600 dark:bg-indigo-950 hover:bg-indigo-700">
                 <a href="/auth?tab=signup">Sign Up & Get Help</a>
               </Button>
               <Button
                 variant="outline"
                 size="lg"
-                className="flex-1 border-indigo-300 text-indigo-700 hover:bg-indigo-50 hover:text-indigo-800"
+                className="flex-1 border-indigo-300 dark:bg-indigo-700 dark:border-indigo-700 text-indigo-700 dark:text-indigo-100 hover:bg-indigo-50 hover:text-indigo-800"
                 onClick={handleAnonymousHelp}
               >
                 Continue Anonymously

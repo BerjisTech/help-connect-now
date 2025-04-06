@@ -158,7 +158,7 @@ const Browse = () => {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">Find a Helper</h1>
+        <h1 className="text-3xl font-bold mb-6 dark:text-primary">Find a Consultant</h1>
         
         <ProblemCard description={description} />
         
@@ -175,13 +175,6 @@ const Browse = () => {
           consultants={consultants}
           filteredConsultants={filteredConsultants}
           viewMode={viewMode}
-          loading={loading}
-          onInteraction={initiateInteraction}
-        />
-        
-        <HelpersSection 
-          helpers={helpers}
-          filteredHelpers={filteredHelpers}
           loading={loading}
           onInteraction={initiateInteraction}
         />

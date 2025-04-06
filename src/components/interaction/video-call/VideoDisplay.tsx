@@ -33,8 +33,8 @@ const VideoDisplay = ({
       {/* Local video (small overlay) */}
       <div className="absolute bottom-4 right-4 w-1/4 max-w-[160px] h-auto aspect-video rounded-lg overflow-hidden border-2 border-white/20 shadow-lg">
         {isAudioOnly ? (
-          <div className="h-full w-full bg-gray-800 flex items-center justify-center">
-            <Mic className="w-8 h-8 text-white opacity-50" />
+          <div className="h-full w-full bg-gray-800 dark:bg-indigo-950 flex items-center justify-center">
+            <Mic className="w-8 h-8 dark:bg-indigo-950 text-white opacity-50" />
           </div>
         ) : (
           <video
@@ -42,14 +42,14 @@ const VideoDisplay = ({
             autoPlay
             playsInline
             muted
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover dark:bg-indigo-950"
           />
         )}
         
         {/* Muted indicators for local video */}
         {!isVideoEnabled && !isAudioOnly && (
           <div className="absolute inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center">
-            <VideoOff className="w-6 h-6 text-white" />
+            <VideoOff className="w-6 h-6 dark:bg-indigo-950 text-white" />
           </div>
         )}
         {!isAudioEnabled && (

@@ -50,7 +50,7 @@ const ChatInterface = ({
   };
 
   return (
-    <Card className="h-full flex flex-col">
+    <Card className="h-full flex flex-col dark:bg-indigo-950 dark:text-accent">
       <CardHeader>
         <CardTitle>
           {showVideoCall ? 'Video Call' : 'Chat'}
@@ -101,7 +101,7 @@ const ChatInterface = ({
           <div className="flex w-full gap-2">
             <Textarea 
               placeholder="Type your message here..." 
-              className="flex-1"
+              className="flex-1 dark:bg-indigo-950 dark:text-accent"
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               onKeyDown={(e) => {

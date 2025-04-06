@@ -45,44 +45,7 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 246 83% 53%;
-    --primary-foreground: 240 100% 99%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 243 75% 15%;
-    --accent-foreground: 246 83% 70%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 246 83% 53%;
-    
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
 }
 
 @layer base {
@@ -94,87 +57,21 @@
     @apply bg-background text-foreground transition-colors duration-200;
   }
   
-  /* Apply dark mode to all main content areas */
-  .dark main,
-  .dark section,
-  .dark div,
-  .dark aside {
-    @apply bg-background text-foreground;
-  }
-  
-  /* Ensure consistent dark mode for cards */
-  .dark .card {
-    @apply bg-card text-card-foreground border-border;
-  }
-}
-
-/* Custom dark mode enhancements */
-.dark .dropdown-menu-content {
-  @apply bg-gray-800 border-gray-700;
-}
-
-.dark .card {
-  @apply bg-gray-800 border-gray-700;
-}
-
-.dark input, 
-.dark textarea, 
-.dark select {
-  @apply bg-gray-800 border-gray-700 text-white;
-}
-
-.dark button:not([class*="bg-"]) {
-  @apply text-gray-200;
-}
-
-.dark a:not([class*="text-"]) {
-  @apply text-blue-400 hover:text-blue-300;
-}
-
-/* Additional dark mode fixes */
-.dark .bg-white {
-  @apply bg-gray-800;
-}
-
-.dark .text-gray-800,
-.dark .text-gray-900,
-.dark .text-black {
-  @apply text-gray-100;
-}
-
-.dark .border-gray-200 {
-  @apply border-gray-700;
-}
-
-.dark .shadow {
-  @apply shadow-gray-900;
-}
-
-.dark .container,
-.dark .max-w-3xl,
-.dark .max-w-4xl,
-.dark .max-w-5xl,
-.dark .max-w-6xl,
-.dark .max-w-7xl {
-  @apply bg-background;
-}
-
-/* For areas with white backgrounds that need dark mode */
-.dark [class*="bg-white"] {
-  @apply bg-gray-800 text-white;
-}
-
-/* Fix for specific light background elements */
-.dark .bg-gray-50,
-.dark .bg-gray-100,
-.dark .bg-gray-200 {
-  @apply bg-gray-800 text-gray-100;
 }
 
 .animated-gradient {
   background: linear-gradient(-45deg, #6366F1, #4F46E5, #4338CA, #6366F1);
   background-size: 400% 400%;
   animation: gradient 15s ease infinite;
+}
+
+*{
+  outline: none !important;
+}
+
+/* remove form element outlines */
+input:focus, textarea:focus, select:focus {
+  outline: none !important;
 }
 
 @keyframes gradient {

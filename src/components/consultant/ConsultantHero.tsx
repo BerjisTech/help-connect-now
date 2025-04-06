@@ -35,7 +35,7 @@ const ConsultantHero = ({ consultant, config }: ConsultantHeroProps) => {
   };
 
   const backgroundStyle = {
-    backgroundColor: config.backgroundColor || '#f1f5f9',
+    backgroundColor: config.backgroundColor || '#342B88',
     backgroundImage: config.backgroundImage ? `url(${config.backgroundImage})` : 'none',
     backgroundSize: 'cover',
     backgroundPosition: 'center'
@@ -43,7 +43,7 @@ const ConsultantHero = ({ consultant, config }: ConsultantHeroProps) => {
 
   return (
     <section 
-      className="py-16 md:py-24" 
+      className="py-16 md:py-24 dark:bg-black" 
       style={backgroundStyle}
     >
       <div className="container mx-auto px-4">

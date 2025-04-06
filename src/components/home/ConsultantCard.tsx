@@ -39,7 +39,7 @@ const ConsultantCard = ({ consultant, staggerIndex }: ConsultantCardProps) => {
     if (!consultant.availability || consultant.availability === 'available') {
       return 'bg-gradient-to-t from-indigo-900/90 via-indigo-800/50 to-transparent';
     } else if (consultant.availability === 'busy') {
-      return 'bg-gradient-to-t from-amber-900/90 via-amber-800/50 to-transparent';
+      return 'bg-gradient-to-t from-amber-900/90 dark:from-indigo-900/90 via-amber-800/50 dark:via-amber-800/40 to-transparent';
     } else {
       return 'bg-gradient-to-t from-gray-900/90 via-gray-800/50 to-transparent';
     }
@@ -115,9 +115,9 @@ const ConsultantCard = ({ consultant, staggerIndex }: ConsultantCardProps) => {
           
           {consultant.availability && (
             <span className={`ml-3 text-xs px-2 py-0.5 rounded-full ${
-              consultant.availability === 'available' ? 'bg-green-500/30 text-green-100' :
-              consultant.availability === 'busy' ? 'bg-amber-500/30 text-amber-100' :
-              'bg-gray-500/30 text-gray-100'
+              consultant.availability === 'available' ? 'bg-green-500/30 dark:bg-green-500/50 text-green-100' :
+              consultant.availability === 'busy' ? 'bg-amber-500/30 dark:bg-amber-500/50 text-amber-100' :
+              'bg-gray-500/30 dark:bg-gray-500/50 text-gray-100'
             }`}>
               {consultant.availability.charAt(0).toUpperCase() + consultant.availability.slice(1)}
             </span>
@@ -146,7 +146,7 @@ const ConsultantCard = ({ consultant, staggerIndex }: ConsultantCardProps) => {
             className={`flex-1 ${
               isOffline 
                 ? 'bg-gray-500 cursor-not-allowed' 
-                : 'bg-indigo-500 hover:bg-indigo-600'
+                : 'bg-indigo-500 hover:bg-indigo-600 dark:bg-indigo-950'
             }`}
           >
             {connecting && interactionType === 'video' ? (
@@ -167,10 +167,10 @@ const ConsultantCard = ({ consultant, staggerIndex }: ConsultantCardProps) => {
               handleConnectNow('text');
             }}
             disabled={connecting || isOffline}
-            className={`flex-1 border-white/30 ${
+            className={`flex-1 border-white/30 dark:border-indigo-700 ${
               isOffline 
                 ? 'text-gray-300 cursor-not-allowed' 
-                : 'text-white hover:bg-white/10'
+                : 'text-white dark:bg-indigo-700 hover:bg-white/10'
             }`}
           >
             {connecting && interactionType === 'text' ? (

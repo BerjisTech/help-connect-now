@@ -55,7 +55,7 @@ export const AuthModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md dark:bg-indigo-950 dark:text-accent">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {getIcon()}
@@ -70,12 +70,12 @@ export const AuthModal = ({
 
         <div className="flex flex-col gap-4 py-4">
           {consultant.allowAnonymous && (
-            <Button onClick={onProceedAnonymously} variant="outline" className="w-full justify-start">
+            <Button onClick={onProceedAnonymously} variant="outline" className="w-full justify-start dark:bg-indigo-950 dark:text-accent">
               <span className="mr-2">👤</span>
               Continue anonymously
             </Button>
           )}
-          <Button onClick={handleLogin} variant="outline" className="w-full justify-start">
+          <Button onClick={handleLogin} variant="outline" className="w-full justify-start dark:bg-indigo-950 dark:text-accent">
             <span className="mr-2">🔑</span>
             Log in to your account
           </Button>

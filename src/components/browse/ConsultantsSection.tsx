@@ -27,7 +27,7 @@ export const ConsultantsSection = ({
 
   return (
     <div className="mb-8">
-      <h2 className="text-2xl font-semibold mb-4">Consultants</h2>
+      <h2 className="text-2xl font-semibold mb-4 dark:text-indigo-600">Consultants</h2>
       
       {viewMode === 'grid' ? (
         <ConsultantsGrid 

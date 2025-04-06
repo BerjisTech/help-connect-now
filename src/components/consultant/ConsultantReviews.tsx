@@ -71,7 +71,7 @@ const ConsultantReviews = ({ consultantId }: ConsultantReviewsProps) => {
 
   if (reviews.length === 0) {
     return (
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-white dark:bg-indigo-900">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-8">Client Reviews</h2>
           <p className="text-gray-600">No reviews yet. Be the first to work with me!</p>
@@ -90,7 +90,7 @@ const ConsultantReviews = ({ consultantId }: ConsultantReviewsProps) => {
   };
 
   return (
-    <section className="py-16 bg-white">
+    <section className="py-16 bg-white dark:bg-indigo-950">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl font-bold mb-8 text-center">Client Reviews</h2>
         

@@ -45,7 +45,7 @@ const InteractionDetails = ({
   confirmEndCall,
 }: InteractionDetailsProps) => {
   return (
-    <Card className="h-full">
+    <Card className="h-full dark:bg-indigo-950 dark:text-accent">
       <CardHeader>
         <div className="flex justify-between items-center">
           <div>
@@ -123,10 +123,10 @@ const InteractionDetails = ({
       <CardFooter className="flex flex-col gap-2 items-stretch">
         {interaction.interaction_type === 'video' && !showVideoCall && (
           <div className="flex flex-col gap-2">
-            <Button className="w-full" onClick={() => startVideoCall('user')}>
+            <Button className="w-full dark:bg-indigo-800/50" onClick={() => startVideoCall('user')}>
               Join as User
             </Button>
-            <Button className="w-full" variant="outline" onClick={() => startVideoCall('consultant')}>
+            <Button className="w-full dark:bg-indigo-400/50 dark:border-indigo-400/50" variant="outline" onClick={() => startVideoCall('consultant')}>
               Join as Consultant
             </Button>
           </div>
@@ -140,11 +140,11 @@ const InteractionDetails = ({
         
         <Dialog open={endCallConfirmOpen} onOpenChange={setEndCallConfirmOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" className="w-full">
+            <Button variant="outline" className="w-full  dark:bg-red-800/50 dark:border-red-800/50">
               End Interaction
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="dark:bg-indigo-950 dark:border-indigo-950 dark:text-accent">
             <DialogHeader>
               <DialogTitle>End this consultation?</DialogTitle>
               <DialogDescription>

@@ -86,18 +86,18 @@ const ConsultantsSection = () => {
   }, []);
 
   return (
-    <section className="py-20 bg-white">
+    <section className="py-20 bg-white dark:bg-indigo-950">
       <div className="container mx-auto px-4">
         <div className="text-right mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-indigo-600 mb-4">Top Consultants Ready to Help</h2>
-          <p className="text-xl text-indigo-900/70 max-w-3xl ml-auto">
+          <h2 className="text-3xl md:text-4xl font-bold text-indigo-600 dark:text-indigo-100 mb-4">Top Consultants Ready to Help</h2>
+          <p className="text-xl text-indigo-900/70 dark:text-indigo-300 max-w-3xl ml-auto">
             Our platform connects you with verified experts across industries
           </p>
         </div>
         
         {loading ? (
           <div className="flex justify-center items-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+            <Loader2 className="h-8 w-8 animate-spin text-indigo-600 dark:text-accent" />
             <span className="ml-2 text-indigo-600">Loading consultants...</span>
           </div>
         ) : (
@@ -113,7 +113,7 @@ const ConsultantsSection = () => {
         )}
         
         <div className="text-center mt-10">
-          <Button asChild variant="outline" size="lg" className="border-indigo-300 text-indigo-700 hover:bg-indigo-50">
+          <Button asChild variant="outline" size="lg" className="border-indigo-300 dark:bg-indigo-700 dark:border-indigo-700 text-indigo-700 dark:text-indigo-950 hover:bg-indigo-50">
             <a href="/browse">View All Consultants</a>
           </Button>
         </div>

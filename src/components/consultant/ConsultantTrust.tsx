@@ -12,10 +12,10 @@ const ConsultantTrust = ({ config }: ConsultantTrustProps) => {
   const hasIndividualClients = individualClients > 0;
 
   return (
-    <section className="py-10 bg-gray-50">
+    <section className="py-10 bg-gray-50 dark:bg-indigo-950/50">
       <div className="container mx-auto px-4 text-center">
         {(hasCompanyClients && hasIndividualClients) ? (
-          <p className="text-lg md:text-xl text-gray-700">
+          <p className="text-lg md:text-xl text-gray-700 dark:text-gray-300">
             Trusted by <span className="font-bold">{companyClients}</span> companies and <span className="font-bold">{individualClients}</span> individual clients
           </p>
         ) : hasCompanyClients ? (

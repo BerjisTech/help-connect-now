@@ -68,7 +68,7 @@ export const ConsultantsTable = ({ consultants, onInteraction }: ConsultantsTabl
             {consultants.map((consultant) => (
               <TableRow key={consultant.id.toString()}>
                 <TableCell className="font-medium">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 dark:text-accent">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={consultant.image} />
                       <AvatarFallback>{consultant.name.charAt(0)}</AvatarFallback>
@@ -76,23 +76,23 @@ export const ConsultantsTable = ({ consultants, onInteraction }: ConsultantsTabl
                     {consultant.name}
                   </div>
                 </TableCell>
-                <TableCell>{consultant.industry}</TableCell>
+                <TableCell className='dark:text-accent'>{consultant.industry}</TableCell>
                 <TableCell>
                   <div className="flex flex-wrap gap-1">
                     {consultant.expertise.slice(0, 2).map((exp, i) => (
-                      <Badge key={i} variant="outline" className="text-xs">
+                      <Badge key={i} variant="outline" className="text-xs dark:bg-indigo-600/50 dark:border-indigo-600/50 dark:text-white/50">
                         {exp}
                       </Badge>
                     ))}
                     {consultant.expertise.length > 2 && (
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge variant="secondary" className="text-xs dark:bg-indigo-600/50 dark:border-indigo-600/50">
                         +{consultant.expertise.length - 2}
                       </Badge>
                     )}
                   </div>
                 </TableCell>
                 <TableCell>
-                  <div className="flex items-center">
+                  <div className="flex items-center dark:text-accent">
                     <StarIcon className="h-4 w-4 text-yellow-400 mr-1" />
                     {consultant.rating.toFixed(1)}
                   </div>
