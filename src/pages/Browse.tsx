@@ -73,7 +73,8 @@ const Browse = () => {
           rating: item.rating || 4.5,
           image: item.avatar_url || `https://images.unsplash.com/photo-${Math.floor(Math.random() * 1000000)}?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80`,
           expertise: item.expertise || ['Consulting'],
-          availability: item.availability
+          availability: item.availability,
+          allowAnonymous: item.allow_anonymous !== undefined ? item.allow_anonymous : Math.random() > 0.3 // For demo purposes, randomly allow anonymous for some consultants
         }));
         
         setConsultants(formattedConsultants);
@@ -123,8 +124,15 @@ const Browse = () => {
       } else if (anonymousId) {
         interactionData.anonymous_seeker_id = anonymousId;
       } else {
-        toast.error('You need to be logged in or have an anonymous session to start an interaction');
-        return;
+        // Generate a new anonymous ID if the user is not logged in and no anonymous ID exists
+        const newAnonymousId = Math.random().toString(36).substring(2, 15);
+        interactionData.anonymous_seeker_id = newAnonymousId;
+        
+        // Add the anonymous ID to the URL for future visits
+        const currentParams = new URLSearchParams(window.location.search);
+        currentParams.set('anonymous', newAnonymousId);
+        const newUrl = `${window.location.pathname}?${currentParams.toString()}`;
+        window.history.pushState({}, '', newUrl);
       }
       
       const { data, error } = await supabase

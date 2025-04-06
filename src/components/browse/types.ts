@@ -11,4 +11,5 @@ export interface Consultant {
   image: string;
   expertise: string[];
   availability?: string;
+  allowAnonymous?: boolean;
 }
