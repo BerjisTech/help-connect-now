@@ -28,16 +28,20 @@ import { toast } from 'sonner';
 import { Database } from '@/integrations/supabase/types';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
-type Interaction = Database['public']['Tables']['interactions']['Row'] & {
-  helper: Profile,
-  seeker: Profile | null,
-  messages: Database['public']['Tables']['messages']['Row'][]
+type InteractionRow = Database['public']['Tables']['interactions']['Row'];
+type MessageRow = Database['public']['Tables']['messages']['Row'];
+
+// Define a proper type that matches what we get from the Supabase join query
+type InteractionWithRelations = InteractionRow & {
+  helper: Profile | null;
+  seeker: Profile | null;
+  messages: MessageRow[];
 };
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('active');
-  const [interactions, setInteractions] = useState<Interaction[]>([]);
+  const [interactions, setInteractions] = useState<InteractionWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<Profile | null>(null);
 
@@ -109,7 +113,8 @@ const Dashboard = () => {
         throw error;
       }
       
-      setInteractions(data as Interaction[]);
+      // Use type assertion to handle the data shape correctly
+      setInteractions(data as InteractionWithRelations[]);
     } catch (error) {
       console.error('Error fetching interactions:', error);
       toast.error('Failed to load interactions');

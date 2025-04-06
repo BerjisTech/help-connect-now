@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -28,7 +27,9 @@ import { toast } from 'sonner';
 import { Database } from '@/integrations/supabase/types';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
+type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
 type Availability = Database['public']['Enums']['availability_status'];
+type UserType = Database['public']['Enums']['user_type'];
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -127,7 +128,9 @@ const Profile = () => {
         return;
       }
       
-      const updates = {
+      const userType: UserType = isHelper ? 'helper' : 'seeker';
+      
+      const updates: ProfileUpdate = {
         id: user.id,
         first_name: firstName,
         last_name: lastName,
@@ -135,7 +138,7 @@ const Profile = () => {
         bio,
         industry,
         expertise,
-        user_type: isHelper ? 'helper' : 'seeker',
+        user_type: userType,
         hourly_rate: hourlyRate ? parseFloat(hourlyRate) : null,
         availability,
       };
