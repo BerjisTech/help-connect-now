@@ -6,8 +6,19 @@ import MediaControls from './MediaControls';
 import ErrorDisplay from './ErrorDisplay';
 import { VideoCallProps } from './types';
 
-const VideoCall = ({ interactionId, participantId, isInitiator = false, onEndCall }: VideoCallProps) => {
+const VideoCall = ({ 
+  interactionId, 
+  participantId, 
+  isInitiator = false, 
+  onEndCall,
+  joinAs
+}: VideoCallProps) => {
   const [endCallConfirmOpen, setEndCallConfirmOpen] = useState(false);
+  
+  // Determine channel name based on role
+  const channelName = joinAs 
+    ? `videocall:${interactionId}:${joinAs}` 
+    : `videocall:${interactionId}`;
   
   const {
     localStream,
@@ -24,7 +35,7 @@ const VideoCall = ({ interactionId, participantId, isInitiator = false, onEndCal
     tryAudioOnly,
     endCall,
     retryConnection
-  } = useWebRTC(interactionId, isInitiator, onEndCall);
+  } = useWebRTC(interactionId, isInitiator, onEndCall, channelName);
 
   return (
     <div className="flex flex-col h-full">

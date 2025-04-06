@@ -3,7 +3,12 @@ import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
-export const useWebRTC = (interactionId: string, isInitiator: boolean, onEndCall?: () => void) => {
+export const useWebRTC = (
+  interactionId: string, 
+  isInitiator: boolean, 
+  onEndCall?: () => void, 
+  customChannelName?: string
+) => {
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -24,7 +29,11 @@ export const useWebRTC = (interactionId: string, isInitiator: boolean, onEndCall
 
   // Set up signaling channel using Supabase Realtime
   useEffect(() => {
-    const channel = supabase.channel(`videocall:${interactionId}`, {
+    // Use custom channel name if provided, otherwise use default
+    const channelName = customChannelName || `videocall:${interactionId}`;
+    console.log(`Subscribing to channel: ${channelName}`);
+    
+    const channel = supabase.channel(channelName, {
       config: {
         broadcast: { self: true }
       }
@@ -34,34 +43,41 @@ export const useWebRTC = (interactionId: string, isInitiator: boolean, onEndCall
     channel
       .on('broadcast', { event: 'offer' }, ({ payload }) => {
         if (!isInitiator && peerConnectionRef.current) {
+          console.log('Received offer', payload.offer);
           handleReceivedOffer(payload.offer);
         }
       })
       .on('broadcast', { event: 'answer' }, ({ payload }) => {
         if (isInitiator && peerConnectionRef.current) {
+          console.log('Received answer', payload.answer);
           handleReceivedAnswer(payload.answer);
         }
       })
       .on('broadcast', { event: 'ice-candidate' }, ({ payload }) => {
         if (peerConnectionRef.current) {
+          console.log('Received ICE candidate', payload.candidate);
           handleReceivedICECandidate(payload.candidate);
         }
       })
       .subscribe((status) => {
+        console.log(`Subscription status: ${status}`);
         if (status === 'SUBSCRIBED') {
           setupMediaAndPeerConnection();
         }
       });
 
     return () => {
+      console.log(`Unsubscribing from channel: ${channelName}`);
       channel.unsubscribe();
       cleanupCall();
     };
-  }, [interactionId, isInitiator]);
+  }, [interactionId, isInitiator, customChannelName]);
 
   // Send signaling message through Supabase Realtime
   const sendSignalingMessage = (event: string, payload: any) => {
-    supabase.channel(`videocall:${interactionId}`).send({
+    const channelName = customChannelName || `videocall:${interactionId}`;
+    console.log(`Sending ${event} through channel ${channelName}`, payload);
+    supabase.channel(channelName).send({
       type: 'broadcast',
       event: event,
       payload: payload
@@ -153,7 +169,9 @@ export const useWebRTC = (interactionId: string, isInitiator: boolean, onEndCall
         ? { video: false, audio: true }
         : { video: true, audio: true };
       
+      console.log('Getting user media with constraints:', constraints);
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      console.log('Got local stream:', stream);
       
       setLocalStream(stream);
       
@@ -169,6 +187,7 @@ export const useWebRTC = (interactionId: string, isInitiator: boolean, onEndCall
         ]
       };
       
+      console.log('Creating peer connection with config:', configuration);
       const peerConnection = new RTCPeerConnection(configuration);
       peerConnectionRef.current = peerConnection;
       remoteDescriptionSet.current = false;
@@ -176,16 +195,20 @@ export const useWebRTC = (interactionId: string, isInitiator: boolean, onEndCall
 
       // Add local stream tracks to peer connection
       stream.getTracks().forEach(track => {
+        console.log('Adding track to peer connection:', track.kind);
         peerConnection.addTrack(track, stream);
       });
 
       // Set up data channel for messaging
       if (isInitiator) {
+        console.log('Creating data channel as initiator');
         const dataChannel = peerConnection.createDataChannel('chat');
         channelRef.current = dataChannel;
         setupDataChannel(dataChannel);
       } else {
+        console.log('Setting up ondatachannel as receiver');
         peerConnection.ondatachannel = (event) => {
+          console.log('Data channel received from remote peer');
           channelRef.current = event.channel;
           setupDataChannel(event.channel);
         };
@@ -194,6 +217,7 @@ export const useWebRTC = (interactionId: string, isInitiator: boolean, onEndCall
       // Handle ICE candidates
       peerConnection.onicecandidate = (event) => {
         if (event.candidate) {
+          console.log('New ICE candidate:', event.candidate);
           sendSignalingMessage('ice-candidate', { candidate: event.candidate });
         }
       };
@@ -224,7 +248,9 @@ export const useWebRTC = (interactionId: string, isInitiator: boolean, onEndCall
 
       // Handle incoming remote streams
       peerConnection.ontrack = (event) => {
+        console.log('Remote track received:', event.track.kind);
         if (event.streams && event.streams[0]) {
+          console.log('Setting remote stream');
           setRemoteStream(event.streams[0]);
           
           if (remoteVideoRef.current) {
@@ -235,6 +261,7 @@ export const useWebRTC = (interactionId: string, isInitiator: boolean, onEndCall
 
       // Create and send offer if initiator
       if (isInitiator) {
+        console.log('Creating offer as initiator');
         const offer = await peerConnection.createOffer();
         await peerConnection.setLocalDescription(offer);
         sendSignalingMessage('offer', { offer });

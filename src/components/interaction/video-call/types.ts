@@ -4,6 +4,7 @@ export interface VideoCallProps {
   participantId?: string;
   isInitiator?: boolean;
   onEndCall?: () => void;
+  joinAs?: 'consultant' | 'user';
 }
 
 export interface MediaControlsProps {

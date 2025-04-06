@@ -62,6 +62,7 @@ const InteractionPage = () => {
   const [newMessage, setNewMessage] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
   const [showVideoCall, setShowVideoCall] = useState(false);
+  const [joinAs, setJoinAs] = useState<'consultant' | 'user'>('user');
   const [endCallConfirmOpen, setEndCallConfirmOpen] = useState(false);
   const [timerRunning, setTimerRunning] = useState(false);
   const [sessionStartTime, setSessionStartTime] = useState<string | null>(null);
@@ -196,11 +197,12 @@ const InteractionPage = () => {
     }
   };
 
-  const startVideoCall = () => {
+  const startVideoCall = (role: 'consultant' | 'user' = 'user') => {
     if (interaction?.interaction_type !== 'video') {
       toast.error('This interaction is not set up for video calls');
       return;
     }
+    setJoinAs(role);
     setShowVideoCall(true);
   };
 
@@ -350,9 +352,14 @@ const InteractionPage = () => {
               </CardContent>
               <CardFooter className="flex flex-col gap-2 items-stretch">
                 {interaction.interaction_type === 'video' && !showVideoCall && (
-                  <Button className="w-full" onClick={startVideoCall}>
-                    Start Video Call
-                  </Button>
+                  <div className="flex flex-col gap-2">
+                    <Button className="w-full" onClick={() => startVideoCall('user')}>
+                      Join as User
+                    </Button>
+                    <Button className="w-full" variant="outline" onClick={() => startVideoCall('consultant')}>
+                      Join as Consultant
+                    </Button>
+                  </div>
                 )}
                 
                 {interaction.interaction_type === 'audio' && (
@@ -398,8 +405,9 @@ const InteractionPage = () => {
                     <VideoCall
                       interactionId={interaction.id}
                       participantId={consultant?.id}
-                      isInitiator={true}
+                      isInitiator={joinAs === 'user'}
                       onEndCall={() => setShowVideoCall(false)}
+                      joinAs={joinAs}
                     />
                   </div>
                 ) : messages.length === 0 ? (
