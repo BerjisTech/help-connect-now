@@ -7,6 +7,7 @@ import AdminPaymentsPanel from '@/components/admin/AdminPaymentsPanel';
 import AdminReportsPanel from '@/components/admin/AdminReportsPanel';
 import AdminSiteNoticesPanel from '@/components/admin/AdminSiteNoticesPanel';
 import AdminStaffPanel from '@/components/admin/AdminStaffPanel';
+import AdminConsultantsPanel from '@/components/admin/AdminConsultantsPanel';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
@@ -75,8 +76,9 @@ const AdminDashboard = () => {
       <Separator className="my-6" />
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid grid-cols-2 md:grid-cols-6 gap-2">
+        <TabsList className="grid grid-cols-2 md:grid-cols-7 gap-2">
           <TabsTrigger value="users">Users</TabsTrigger>
+          <TabsTrigger value="consultants">Consultants</TabsTrigger>
           <TabsTrigger value="consultations">Consultations</TabsTrigger>
           <TabsTrigger value="payments">Payments</TabsTrigger>
           <TabsTrigger value="reports">Reports</TabsTrigger>
@@ -86,6 +88,10 @@ const AdminDashboard = () => {
         
         <TabsContent value="users" className="space-y-4">
           <AdminUsersPanel />
+        </TabsContent>
+        
+        <TabsContent value="consultants" className="space-y-4">
+          <AdminConsultantsPanel />
         </TabsContent>
         
         <TabsContent value="consultations" className="space-y-4">

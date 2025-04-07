@@ -15,6 +15,7 @@ import {
 import { AuthModal } from './AuthModal';
 import { supabase } from '@/integrations/supabase/client';
 import { ConsultantData } from '../interaction/types';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
 
 interface ConsultantCardProps {
   consultant: ConsultantData
@@ -88,21 +89,23 @@ export const ConsultantCard = ({ consultant, onInteraction }: ConsultantCardProp
         className="overflow-hidden dark:bg-indigo-700/40 dark:border-indigo-700/40 h-full cursor-pointer hover:shadow-md transition-shadow"
         onClick={handleCardClick}
       >
-        <div className="h-48 relative">
-          <img 
-            src={consultant.avatar_url} 
-            alt={consultant.display_name}
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              // If image fails to load, use fallback
-              (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(consultant.display_name)}`;
-            }}
-          />
+        <div className="relative">
+          <AspectRatio ratio={4/3}>
+            <img 
+              src={avatarUrl} 
+              alt={consultant.display_name}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                // If image fails to load, use fallback
+                (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(consultant.display_name)}`;
+              }}
+            />
+          </AspectRatio>
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent">
             <div className="absolute bottom-3 left-3 right-3 text-white">
               <div className="flex items-center mb-1">
                 <StarIcon className="h-4 w-4 text-yellow-400 mr-1" />
-                <span className="text-sm font-medium">{consultant.rating?.toFixed(1)}</span>
+                <span className="text-sm font-medium">{consultant.rating?.toFixed(1) || '0.0'}</span>
                 
                 {consultant.availability && (
                   <span className={`ml-auto text-xs px-2 py-0.5 rounded-full ${
@@ -119,7 +122,7 @@ export const ConsultantCard = ({ consultant, onInteraction }: ConsultantCardProp
         </div>
         <CardHeader className="pb-2">
           <CardTitle className="text-lg dark:text-accent">{consultant.display_name}</CardTitle>
-          <CardDescription>{consultant.industry}</CardDescription>
+          <CardDescription>{consultant.industry || 'No industry specified'}</CardDescription>
         </CardHeader>
         <CardContent className="pt-0">
           <div className="flex flex-wrap gap-1 mb-2">
