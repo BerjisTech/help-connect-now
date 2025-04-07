@@ -16,15 +16,12 @@ export interface InteractionData {
 
 export interface ConsultantData {
   id: string;
-  name: string;
   display_name: string;
   bio?: string;
   expertise?: string[];
   industry: string;
-  expertise: string[];
   rating: number;
   avatar_url: string;
-  bio?: string;
   availability?: string;
   hourly_rate?: number;
   review_count?: number;
