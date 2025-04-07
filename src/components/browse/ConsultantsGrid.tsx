@@ -1,9 +1,9 @@
 
-import { Consultant } from './types';
 import { ConsultantCard } from './ConsultantCard';
+import { ConsultantData } from '../interaction/types';
 
 interface ConsultantsGridProps {
-  consultants: Consultant[];
+  consultants: ConsultantData[];
   onInteraction: (id: string, type: 'video' | 'audio' | 'text') => void;
 }
 

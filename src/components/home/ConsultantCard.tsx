@@ -55,7 +55,7 @@ const ConsultantCard = ({ consultant, staggerIndex }: ConsultantCardProps) => {
         .from('interactions')
         .insert({
           interaction_type: type,
-          description: `Consultation with ${consultant.name} on ${consultant.industry}`,
+          description: `Consultation with ${consultant.display_name} on ${consultant.industry}`,
           seeker_id: session?.user?.id || null,
           anonymous_seeker_id: session?.user ? null : anonymousId,
           status: 'pending',
@@ -68,7 +68,7 @@ const ConsultantCard = ({ consultant, staggerIndex }: ConsultantCardProps) => {
       
       // Redirect to interaction page
       navigate(`/interaction?id=${data.id}`);
-      toast.success(`Connecting you with ${consultant.name}`);
+      toast.success(`Connecting you with ${consultant.display_name}`);
     } catch (error) {
       console.error('Error connecting with consultant:', error);
       toast.error('Could not connect with consultant. Please try again later.');
@@ -114,7 +114,7 @@ const ConsultantCard = ({ consultant, staggerIndex }: ConsultantCardProps) => {
             </span>
           )}
         </div>
-        <h3 className="text-xl font-bold mb-1">{consultant.name}</h3>
+        <h3 className="text-xl font-bold mb-1">{consultant.display_name}</h3>
         <p className="text-white/80 mb-3">{consultant.industry}</p>
         <div className="flex flex-wrap gap-2 mb-4">
           {consultant.expertise.map((skill, index) => (

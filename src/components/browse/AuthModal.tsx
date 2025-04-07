@@ -59,12 +59,12 @@ export const AuthModal = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {getIcon()}
-            {interactionType.charAt(0).toUpperCase() + interactionType.slice(1)} with {consultant.name}
+            {interactionType.charAt(0).toUpperCase() + interactionType.slice(1)} with {consultant.display_name}
           </DialogTitle>
           <DialogDescription>
             {consultant.allowAnonymous 
               ? "You're not logged in. How would you like to proceed?" 
-              : `${consultant.name} doesn't allow anonymous calls. Please log in or create an account to connect.`}
+              : `${consultant.display_name} doesn't allow anonymous calls. Please log in or create an account to connect.`}
           </DialogDescription>
         </DialogHeader>
 

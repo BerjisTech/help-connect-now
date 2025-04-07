@@ -71,9 +71,9 @@ export const ConsultantsTable = ({ consultants, onInteraction }: ConsultantsTabl
                   <div className="flex items-center gap-2 dark:text-accent">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={consultant.avatar_url} />
-                      <AvatarFallback>{consultant.name.charAt(0)}</AvatarFallback>
+                      <AvatarFallback>{consultant.display_name.charAt(0)}</AvatarFallback>
                     </Avatar>
-                    {consultant.name}
+                    {consultant.display_name}
                   </div>
                 </TableCell>
                 <TableCell className='dark:text-accent'>{consultant.industry}</TableCell>

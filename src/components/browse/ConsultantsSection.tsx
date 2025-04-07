@@ -1,11 +1,11 @@
 
-import { Consultant } from './types';
+import { ConsultantData } from '../interaction/types';
 import { ConsultantsGrid } from './ConsultantsGrid';
 import { ConsultantsTable } from './ConsultantsTable';
 
 interface ConsultantsSectionProps {
-  consultants: Consultant[];
-  filteredConsultants: Consultant[];
+  consultants: ConsultantData[];
+  filteredConsultants: ConsultantData[];
   viewMode: 'grid' | 'table';
   loading: boolean;
   onInteraction: (id: string, type: 'video' | 'audio' | 'text') => void;

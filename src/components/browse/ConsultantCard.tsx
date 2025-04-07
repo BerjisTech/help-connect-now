@@ -69,14 +69,14 @@ export const ConsultantCard = ({ consultant, onInteraction }: ConsultantCardProp
         <div className="h-48 relative">
           <img 
             src={consultant.avatar_url} 
-            alt={consultant.name}
+            alt={consultant.display_name}
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent">
             <div className="absolute bottom-3 left-3 right-3 text-white">
               <div className="flex items-center mb-1">
                 <StarIcon className="h-4 w-4 text-yellow-400 mr-1" />
-                <span className="text-sm font-medium">{consultant.rating.toFixed(1)}</span>
+                <span className="text-sm font-medium">{consultant.rating?.toFixed(1)}</span>
                 
                 {consultant.availability && (
                   <span className={`ml-auto text-xs px-2 py-0.5 rounded-full ${
@@ -92,7 +92,7 @@ export const ConsultantCard = ({ consultant, onInteraction }: ConsultantCardProp
           </div>
         </div>
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg dark:text-accent">{consultant.name}</CardTitle>
+          <CardTitle className="text-lg dark:text-accent">{consultant.display_name}</CardTitle>
           <CardDescription>{consultant.industry}</CardDescription>
         </CardHeader>
         <CardContent className="pt-0">

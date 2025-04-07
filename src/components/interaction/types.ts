@@ -17,7 +17,6 @@ export interface InteractionData {
 export interface ConsultantData {
   id: string;
   display_name: string;
-  name: string;
   bio?: string;
   expertise?: string[];
   industry: string;

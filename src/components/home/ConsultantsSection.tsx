@@ -7,48 +7,6 @@ import ConsultantCard from './ConsultantCard';
 import { supabase } from '@/integrations/supabase/client';
 import { ConsultantData } from '../interaction/types';
 
-// Fallback consultant data (in case no consultants are found in the database)
-const fallbackConsultants: ConsultantData[] = [
-  {
-    id: '1',
-    name: 'Sarah Johnson',
-    display_name: 'Sarah Johnson',
-    industry: 'Marketing',
-    rating: 4.9,
-    avatar_url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    expertise: ['Digital Marketing', 'Brand Strategy'],
-    availability: 'available'
-
-  },
-  {
-    id: '2',
-    name: 'Michael Chen',
-    display_name: 'Michael Chen',
-    industry: 'Finance',
-    rating: 4.8,
-    avatar_url: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    expertise: ['Investment', 'Financial Planning']
-  },
-  {
-    id: '3',
-    name: 'Priya Patel',
-    display_name: 'Priya Patel',
-    industry: 'Technology',
-    rating: 4.7,
-    avatar_url: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    expertise: ['Software Development', 'UX Design']
-  },
-  {
-    id: '4',
-    name: 'James Wilson',
-    display_name: 'James Wilson',
-    industry: 'Business',
-    rating: 4.8,
-    avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    expertise: ['Strategy', 'Operations']
-  }
-];
-
 const ConsultantsSection = () => {
   const [consultants, setConsultants] = useState<ConsultantData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,28 +23,15 @@ const ConsultantsSection = () => {
 
         console.log(data)
 
-        if (data && Array.isArray(data) && data.length > 0) {
-          // Transform the data to our Consultant format
-          const formattedConsultants: ConsultantData[] = data.map((item: any) => ({
-            id: item.id,
-            name: item.display_name,
-            display_name: item.display_name,
-            industry: item.industry || 'Consultant',
-            rating: item.rating || 4.5,
-            avatar_url: item.avatar_url || `https://images.unsplash.com/photo-${Math.floor(Math.random() * 1000000)}?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80`,
-            expertise: item.expertise || ['Consulting'],
-            availability: item.availability
-          }));
-          
-          setConsultants(formattedConsultants);
+        if (data && Array.isArray(data) && data.length > 0) {          
+          setConsultants(data);
         } else {
-          // If no consultants found in DB, use fallback data
-          setConsultants(fallbackConsultants);
+          toast.error('No consultants found.');
         }
       } catch (error) {
         console.error('Error fetching consultants:', error);
         toast.error('Failed to load consultants. Using sample data instead.');
-        setConsultants(fallbackConsultants);
+        
       } finally {
         setLoading(false);
       }

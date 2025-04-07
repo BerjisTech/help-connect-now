@@ -66,19 +66,8 @@ const Browse = () => {
         throw error;
       }
 
-      if (data && Array.isArray(data) && data.length > 0) {
-        const formattedConsultants: ConsultantData[] = data.map((item: any) => ({
-          id: item.id,
-          name: item.display_name,
-          display_name: item.display_name,
-          industry: item.industry || 'Consultant',
-          rating: item.rating || 4.5,
-          avatar_url: item.avatar_url || `https://images.unsplash.com/photo-${Math.floor(Math.random() * 1000000)}?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80`,
-          expertise: item.expertise || ['Consulting'],
-          availability: item.availability
-        }));
-        
-        setConsultants(formattedConsultants);
+      if (data && Array.isArray(data) && data.length > 0) {        
+        setConsultants(data);
       }
     } catch (error) {
       console.error('Error fetching consultants:', error);
@@ -103,7 +92,7 @@ const Browse = () => {
     
     const searchLower = searchQuery.toLowerCase();
     return (
-      consultant.name.toLowerCase().includes(searchLower) ||
+      consultant.display_name.toLowerCase().includes(searchLower) ||
       consultant.industry.toLowerCase().includes(searchLower) ||
       consultant.expertise.some(exp => exp.toLowerCase().includes(searchLower))
     );
