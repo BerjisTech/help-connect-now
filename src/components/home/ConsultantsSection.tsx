@@ -14,7 +14,8 @@ const ConsultantsSection = () => {
   useEffect(() => {
     const fetchConsultants = async () => {
       try {
-        // Use the RPC function to fetch consultants
+        setLoading(true);
+        // Use the RPC function to fetch real consultants from the database
         const { data, error } = await supabase.rpc('get_consultants');
 
         if (error) {
@@ -25,28 +26,29 @@ const ConsultantsSection = () => {
           // Transform the data to our ConsultantData format
           const formattedConsultants: ConsultantData[] = data.map((item: any) => ({
             id: item.id,
-            name: item.display_name,
-            display_name: item.display_name,
+            name: item.display_name || 'Unnamed Consultant',
+            display_name: item.display_name || 'Unnamed Consultant',
             industry: item.industry || 'Consultant',
-            rating: item.rating || 4.5,
+            rating: item.rating || 0,
             avatar_url: item.avatar_url || '',
-            expertise: item.expertise || ['Consulting'],
-            availability: item.availability,
+            expertise: item.expertise || [],
+            availability: item.availability || 'offline',
             created_at: item.created_at,
             updated_at: item.updated_at,
-            hourly_rate: item.hourly_rate,
-            review_count: item.review_count,
-            bio: item.bio
+            hourly_rate: item.hourly_rate || 0,
+            review_count: item.review_count || 0,
+            bio: item.bio || ''
           }));
           
+          console.log('Home page consultants fetched:', formattedConsultants);
           setConsultants(formattedConsultants);
         } else {
           // If no consultants found, set empty array
+          console.log('No consultants found for home page');
           setConsultants([]);
-          toast.info('No consultants available at the moment.');
         }
       } catch (error) {
-        console.error('Error fetching consultants:', error);
+        console.error('Error fetching consultants for home page:', error);
         toast.error('Failed to load consultants.');
         setConsultants([]);
       } finally {
@@ -76,7 +78,7 @@ const ConsultantsSection = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-16">
             {consultants.map((consultant, index) => (
               <ConsultantCard 
-                key={typeof consultant.id === 'string' ? consultant.id : consultant.id} 
+                key={consultant.id.toString()}
                 consultant={consultant} 
                 staggerIndex={index % 4}
               />

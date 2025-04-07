@@ -59,10 +59,27 @@ export const ConsultantCard = ({ consultant, onInteraction }: ConsultantCardProp
     navigate(`/consultant/${consultant.id}`);
   };
 
-  // Use a default avatar if the avatar_url is missing or empty
-  const avatarUrl = consultant.avatar_url && consultant.avatar_url.trim() !== '' 
-    ? consultant.avatar_url 
-    : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(consultant.name);
+  // Get proper avatar URL based on storage or external URL
+  const getAvatarUrl = () => {
+    if (!consultant.avatar_url) {
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(consultant.name)}`;
+    }
+    
+    // Check if it's a Supabase storage URL or contains 'avatars/'
+    if (consultant.avatar_url.includes('storage/v1/object/public/avatars/')) {
+      return consultant.avatar_url;
+    } 
+    
+    // Check if it's a full URL (contains http or https)
+    if (consultant.avatar_url.includes('http')) {
+      return consultant.avatar_url;
+    }
+    
+    // Default placeholder if none of the above
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(consultant.name)}`;
+  };
+
+  const avatarUrl = getAvatarUrl();
 
   return (
     <>
@@ -76,12 +93,16 @@ export const ConsultantCard = ({ consultant, onInteraction }: ConsultantCardProp
             src={avatarUrl} 
             alt={consultant.name}
             className="w-full h-full object-cover"
+            onError={(e) => {
+              // If image fails to load, use fallback
+              (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(consultant.name)}`;
+            }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent">
             <div className="absolute bottom-3 left-3 right-3 text-white">
               <div className="flex items-center mb-1">
                 <StarIcon className="h-4 w-4 text-yellow-400 mr-1" />
-                <span className="text-sm font-medium">{consultant.rating.toFixed(1)}</span>
+                <span className="text-sm font-medium">{consultant.rating ? consultant.rating.toFixed(1) : '0.0'}</span>
                 
                 {consultant.availability && (
                   <span className={`ml-auto text-xs px-2 py-0.5 rounded-full ${
@@ -98,18 +119,26 @@ export const ConsultantCard = ({ consultant, onInteraction }: ConsultantCardProp
         </div>
         <CardHeader className="pb-2">
           <CardTitle className="text-lg dark:text-accent">{consultant.name}</CardTitle>
-          <CardDescription>{consultant.industry}</CardDescription>
+          <CardDescription>{consultant.industry || 'Consultant'}</CardDescription>
         </CardHeader>
         <CardContent className="pt-0">
           <div className="flex flex-wrap gap-1 mb-2">
-            {consultant.expertise.slice(0, 3).map((exp, i) => (
-              <Badge key={i} variant="secondary" className="text-xs dark:bg-indigo-700/40 dark:text-accent">
-                {exp}
-              </Badge>
-            ))}
-            {consultant.expertise.length > 3 && (
+            {consultant.expertise && consultant.expertise.length > 0 ? (
+              <>
+                {consultant.expertise.slice(0, 3).map((exp, i) => (
+                  <Badge key={i} variant="secondary" className="text-xs dark:bg-indigo-700/40 dark:text-accent">
+                    {exp}
+                  </Badge>
+                ))}
+                {consultant.expertise.length > 3 && (
+                  <Badge variant="outline" className="text-xs dark:bg-indigo-700/40 dark:text-accent">
+                    +{consultant.expertise.length - 3} more
+                  </Badge>
+                )}
+              </>
+            ) : (
               <Badge variant="outline" className="text-xs dark:bg-indigo-700/40 dark:text-accent">
-                +{consultant.expertise.length - 3} more
+                No specialties listed
               </Badge>
             )}
           </div>

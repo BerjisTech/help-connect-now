@@ -10,7 +10,7 @@ import { FilterBar } from '@/components/browse/FilterBar';
 import { ProblemCard } from '@/components/browse/ProblemCard';
 import { ConsultantsSection } from '@/components/browse/ConsultantsSection';
 import { HelpersSection } from '@/components/browse/HelpersSection';
-import { Profile, Consultant } from '@/components/browse/types';
+import { Profile } from '@/components/browse/types';
 import { ConsultantData } from '@/components/interaction/types';
 
 const Browse = () => {
@@ -61,76 +61,42 @@ const Browse = () => {
   const fetchConsultants = async () => {
     setLoading(true);
     try {
-      let query = supabase.rpc('get_consultants');
+      // Get consultants from the database using the RPC function
+      const { data, error } = await supabase.rpc('get_consultants');
       
-      if (industry) {
-        // If using RPC and need to filter by industry, we can fetch all and filter client-side
-        // Or create a new RPC function that accepts industry as a parameter
-        // For now, we'll do client-side filtering
-        const { data, error } = await query;
+      if (error) {
+        throw error;
+      }
+      
+      // Apply industry filter client-side if needed
+      let filteredData = data;
+      if (industry && data) {
+        filteredData = data.filter((item: any) => item.industry === industry);
+      }
+      
+      if (filteredData && Array.isArray(filteredData)) {
+        // Map the data to our ConsultantData type
+        const formattedConsultants: ConsultantData[] = filteredData.map((item: any) => ({
+          id: item.id,
+          name: item.display_name || 'Unnamed Consultant',
+          display_name: item.display_name || 'Unnamed Consultant',
+          industry: item.industry || 'Consultant',
+          rating: item.rating || 0,
+          avatar_url: item.avatar_url || '',
+          expertise: item.expertise || [],
+          availability: item.availability || 'offline',
+          created_at: item.created_at,
+          updated_at: item.updated_at,
+          hourly_rate: item.hourly_rate || 0,
+          review_count: item.review_count || 0,
+          bio: item.bio || ''
+        }));
         
-        if (error) {
-          throw error;
-        }
-        
-        const filteredData = industry 
-          ? data.filter((item: any) => item.industry === industry)
-          : data;
-
-        if (filteredData && Array.isArray(filteredData) && filteredData.length > 0) {
-          // Transform the data to our ConsultantData format
-          const formattedConsultants: ConsultantData[] = filteredData.map((item: any) => ({
-            id: item.id,
-            name: item.display_name,
-            display_name: item.display_name,
-            industry: item.industry || 'Consultant',
-            rating: item.rating || 4.5,
-            avatar_url: item.avatar_url || '',
-            expertise: item.expertise || ['Consulting'],
-            availability: item.availability,
-            created_at: item.created_at,
-            updated_at: item.updated_at,
-            hourly_rate: item.hourly_rate,
-            review_count: item.review_count,
-            bio: item.bio
-          }));
-          
-          setConsultants(formattedConsultants);
-        } else {
-          setConsultants([]);
-          toast.info('No consultants match your criteria.');
-        }
+        setConsultants(formattedConsultants);
+        console.log('Fetched consultants:', formattedConsultants);
       } else {
-        // If no industry filter, just fetch all consultants
-        const { data, error } = await query;
-        
-        if (error) {
-          throw error;
-        }
-        
-        if (data && Array.isArray(data) && data.length > 0) {
-          // Transform the data to our ConsultantData format
-          const formattedConsultants: ConsultantData[] = data.map((item: any) => ({
-            id: item.id,
-            name: item.display_name,
-            display_name: item.display_name,
-            industry: item.industry || 'Consultant',
-            rating: item.rating || 4.5,
-            avatar_url: item.avatar_url || '',
-            expertise: item.expertise || ['Consulting'],
-            availability: item.availability,
-            created_at: item.created_at,
-            updated_at: item.updated_at,
-            hourly_rate: item.hourly_rate,
-            review_count: item.review_count,
-            bio: item.bio
-          }));
-          
-          setConsultants(formattedConsultants);
-        } else {
-          setConsultants([]);
-          toast.info('No consultants available at the moment.');
-        }
+        setConsultants([]);
+        console.log('No consultants data available');
       }
     } catch (error) {
       console.error('Error fetching consultants:', error);

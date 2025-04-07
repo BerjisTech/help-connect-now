@@ -87,10 +87,27 @@ const ConsultantCard = ({ consultant, staggerIndex }: ConsultantCardProps) => {
 
   const isOffline = consultant.availability === 'offline';
 
-  // Use a default avatar if the avatar_url is missing or empty
-  const avatarUrl = consultant.avatar_url && consultant.avatar_url.trim() !== '' 
-    ? consultant.avatar_url 
-    : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(consultant.name);
+  // Get proper avatar URL with fallback
+  const getAvatarUrl = () => {
+    if (!consultant.avatar_url) {
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(consultant.name)}`;
+    }
+    
+    // Check if it's a Supabase storage URL or contains 'avatars/'
+    if (consultant.avatar_url.includes('storage/v1/object/public/avatars/')) {
+      return consultant.avatar_url;
+    } 
+    
+    // Check if it's a full URL (contains http or https)
+    if (consultant.avatar_url.includes('http')) {
+      return consultant.avatar_url;
+    }
+    
+    // Default placeholder if none of the above
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(consultant.name)}`;
+  };
+
+  const avatarUrl = getAvatarUrl();
 
   return (
     <div 
@@ -106,7 +123,7 @@ const ConsultantCard = ({ consultant, staggerIndex }: ConsultantCardProps) => {
         <div className="flex items-center mb-1">
           <span className="flex items-center text-yellow-300 mr-1">
             <Star className="w-4 h-4 fill-current" />
-            <span className="ml-1">{consultant.rating}</span>
+            <span className="ml-1">{consultant.rating || '0.0'}</span>
           </span>
           
           {consultant.availability && (
@@ -120,16 +137,22 @@ const ConsultantCard = ({ consultant, staggerIndex }: ConsultantCardProps) => {
           )}
         </div>
         <h3 className="text-xl font-bold mb-1">{consultant.name}</h3>
-        <p className="text-white/80 mb-3">{consultant.industry}</p>
+        <p className="text-white/80 mb-3">{consultant.industry || 'Consultant'}</p>
         <div className="flex flex-wrap gap-2 mb-4">
-          {consultant.expertise.map((skill, index) => (
-            <span 
-              key={index} 
-              className="px-2 py-1 bg-white/20 rounded-full text-xs"
-            >
-              {skill}
+          {consultant.expertise && consultant.expertise.length > 0 ? (
+            consultant.expertise.map((skill, index) => (
+              <span 
+                key={index} 
+                className="px-2 py-1 bg-white/20 rounded-full text-xs"
+              >
+                {skill}
+              </span>
+            ))
+          ) : (
+            <span className="px-2 py-1 bg-white/20 rounded-full text-xs">
+              No specialties listed
             </span>
-          ))}
+          )}
         </div>
         <div className="flex gap-2">
           <Button 
