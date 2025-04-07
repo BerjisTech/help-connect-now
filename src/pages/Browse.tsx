@@ -59,40 +59,85 @@ const Browse = () => {
   };
 
   const fetchConsultants = async () => {
+    setLoading(true);
     try {
-      const { data, error } = await supabase.rpc('get_consultants');
-
-      if (error) {
-        throw error;
-      }
-
-      if (data && Array.isArray(data) && data.length > 0) {
-        // Transform the database consultant records to our ConsultantData format
-        const formattedConsultants: ConsultantData[] = data.map((item: any) => ({
-          id: item.id,
-          name: item.display_name,
-          display_name: item.display_name,
-          industry: item.industry || 'Consultant',
-          rating: item.rating || 4.5,
-          avatar_url: item.avatar_url || '',
-          expertise: item.expertise || ['Consulting'],
-          availability: item.availability,
-          created_at: item.created_at,
-          updated_at: item.updated_at,
-          hourly_rate: item.hourly_rate,
-          review_count: item.review_count,
-          bio: item.bio
-        }));
+      let query = supabase.rpc('get_consultants');
+      
+      if (industry) {
+        // If using RPC and need to filter by industry, we can fetch all and filter client-side
+        // Or create a new RPC function that accepts industry as a parameter
+        // For now, we'll do client-side filtering
+        const { data, error } = await query;
         
-        setConsultants(formattedConsultants);
+        if (error) {
+          throw error;
+        }
+        
+        const filteredData = industry 
+          ? data.filter((item: any) => item.industry === industry)
+          : data;
+
+        if (filteredData && Array.isArray(filteredData) && filteredData.length > 0) {
+          // Transform the data to our ConsultantData format
+          const formattedConsultants: ConsultantData[] = filteredData.map((item: any) => ({
+            id: item.id,
+            name: item.display_name,
+            display_name: item.display_name,
+            industry: item.industry || 'Consultant',
+            rating: item.rating || 4.5,
+            avatar_url: item.avatar_url || '',
+            expertise: item.expertise || ['Consulting'],
+            availability: item.availability,
+            created_at: item.created_at,
+            updated_at: item.updated_at,
+            hourly_rate: item.hourly_rate,
+            review_count: item.review_count,
+            bio: item.bio
+          }));
+          
+          setConsultants(formattedConsultants);
+        } else {
+          setConsultants([]);
+          toast.info('No consultants match your criteria.');
+        }
       } else {
-        setConsultants([]);
-        toast.info('No consultants available at the moment.');
+        // If no industry filter, just fetch all consultants
+        const { data, error } = await query;
+        
+        if (error) {
+          throw error;
+        }
+        
+        if (data && Array.isArray(data) && data.length > 0) {
+          // Transform the data to our ConsultantData format
+          const formattedConsultants: ConsultantData[] = data.map((item: any) => ({
+            id: item.id,
+            name: item.display_name,
+            display_name: item.display_name,
+            industry: item.industry || 'Consultant',
+            rating: item.rating || 4.5,
+            avatar_url: item.avatar_url || '',
+            expertise: item.expertise || ['Consulting'],
+            availability: item.availability,
+            created_at: item.created_at,
+            updated_at: item.updated_at,
+            hourly_rate: item.hourly_rate,
+            review_count: item.review_count,
+            bio: item.bio
+          }));
+          
+          setConsultants(formattedConsultants);
+        } else {
+          setConsultants([]);
+          toast.info('No consultants available at the moment.');
+        }
       }
     } catch (error) {
       console.error('Error fetching consultants:', error);
       toast.error('Failed to load consultants');
       setConsultants([]);
+    } finally {
+      setLoading(false);
     }
   };
 

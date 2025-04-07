@@ -87,6 +87,11 @@ const ConsultantCard = ({ consultant, staggerIndex }: ConsultantCardProps) => {
 
   const isOffline = consultant.availability === 'offline';
 
+  // Use a default avatar if the avatar_url is missing or empty
+  const avatarUrl = consultant.avatar_url && consultant.avatar_url.trim() !== '' 
+    ? consultant.avatar_url 
+    : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(consultant.name);
+
   return (
     <div 
       className={`relative h-96 rounded-xl overflow-hidden shadow-lg group transition-all duration-300 hover:-translate-y-2 ${staggerClass} cursor-pointer`}
@@ -94,7 +99,7 @@ const ConsultantCard = ({ consultant, staggerIndex }: ConsultantCardProps) => {
     >
       <div 
         className="absolute inset-0 bg-cover bg-center z-0" 
-        style={{ backgroundImage: `url(${consultant.avatar_url})` }}
+        style={{ backgroundImage: `url(${avatarUrl})` }}
       />
       <div className={`absolute inset-0 z-10 ${getAvailabilityClass()}`} />
       <div className="absolute bottom-0 left-0 right-0 p-6 z-20 text-white">

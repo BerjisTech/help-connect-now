@@ -59,6 +59,11 @@ export const ConsultantCard = ({ consultant, onInteraction }: ConsultantCardProp
     navigate(`/consultant/${consultant.id}`);
   };
 
+  // Use a default avatar if the avatar_url is missing or empty
+  const avatarUrl = consultant.avatar_url && consultant.avatar_url.trim() !== '' 
+    ? consultant.avatar_url 
+    : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(consultant.name);
+
   return (
     <>
       <Card 
@@ -68,7 +73,7 @@ export const ConsultantCard = ({ consultant, onInteraction }: ConsultantCardProp
       >
         <div className="h-48 relative">
           <img 
-            src={consultant.avatar_url} 
+            src={avatarUrl} 
             alt={consultant.name}
             className="w-full h-full object-cover"
           />
