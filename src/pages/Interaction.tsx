@@ -70,7 +70,7 @@ const InteractionPage = () => {
             <ChatInterface
               showVideoCall={showVideoCall}
               interactionId={interaction.id}
-              participantId={consultant?.id}
+              participantId={consultant?.id ? consultant.id.toString() : undefined}
               joinAs={joinAs}
               messages={messages}
               helperId={interaction.helper_id}
