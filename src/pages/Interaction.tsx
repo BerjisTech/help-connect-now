@@ -48,6 +48,10 @@ const InteractionPage = () => {
     );
   }
 
+  // Determine correct join role based on URL and user type
+  const isConsultantView = searchParams.get('view') === 'consultant';
+  const effectiveJoinAs = isConsultantView ? 'consultant' : 'user';
+
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8">
@@ -59,7 +63,7 @@ const InteractionPage = () => {
               timerRunning={timerRunning}
               sessionStartTime={sessionStartTime}
               showVideoCall={showVideoCall}
-              startVideoCall={startVideoCall}
+              startVideoCall={() => startVideoCall(effectiveJoinAs)}
               endCallConfirmOpen={endCallConfirmOpen}
               setEndCallConfirmOpen={setEndCallConfirmOpen}
               confirmEndCall={confirmEndCall}
@@ -71,12 +75,12 @@ const InteractionPage = () => {
               showVideoCall={showVideoCall}
               interactionId={interaction.id}
               participantId={consultant?.id ? consultant.id.toString() : undefined}
-              joinAs={joinAs}
+              joinAs={effectiveJoinAs}
               messages={messages}
               helperId={interaction.helper_id}
               onEndVideoCall={endVideoCall}
               onSendMessage={sendMessage}
-              startVideoCall={startVideoCall}
+              startVideoCall={() => startVideoCall(effectiveJoinAs)}
             />
           </div>
         </div>

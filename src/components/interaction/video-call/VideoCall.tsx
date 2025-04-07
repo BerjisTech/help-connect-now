@@ -41,15 +41,15 @@ const VideoCall = ({
   // Send notification to the other participant when initiating a call
   useEffect(() => {
     const sendCallNotification = async () => {
-      if (isInitiator && !notificationSent && interactionId && participantId) {
+      if (!notificationSent && interactionId) {
         try {
           // Add a notification to the database
           await supabase
             .from('messages')
             .insert({
               interaction_id: interactionId,
-              content: `A video call has been initiated. Please join the call.`,
-              sender_id: joinAs === 'user' ? null : participantId,
+              content: `A video call has been initiated.`,
+              sender_id: joinAs === 'consultant' ? participantId : null,
               anonymous_sender_id: joinAs === 'user' ? 'system' : null,
               is_system_message: true,
               requires_attention: true
@@ -61,8 +61,7 @@ const VideoCall = ({
             event: 'call-notification',
             payload: { 
               message: 'Incoming call', 
-              interactionId: interactionId,
-              initiator: joinAs 
+              interactionId: interactionId
             }
           });
           
@@ -75,7 +74,7 @@ const VideoCall = ({
     };
 
     sendCallNotification();
-  }, [isInitiator, interactionId, participantId, joinAs, notificationSent, channelName]);
+  }, [interactionId, participantId, joinAs, notificationSent, channelName]);
 
   return (
     <div className="flex flex-col h-full">

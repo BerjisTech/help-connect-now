@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import VideoCall from './VideoCall';
+import VideoCall from './video-call/VideoCall';
 import { MessageData } from './types';
 
 interface ChatInterfaceProps {
@@ -49,14 +49,14 @@ const ChatInterface = ({
     const channelName = `videocall:${interactionId}`;
     const channel = supabase.channel(channelName, {
       config: {
-        broadcast: { self: true }
+        broadcast: { self: false }
       }
     });
 
     channel
       .on('broadcast', { event: 'call-notification' }, ({ payload }) => {
         console.log('Received call notification:', payload);
-        if (payload.interactionId === interactionId && payload.initiator !== joinAs) {
+        if (payload.interactionId === interactionId) {
           setHasIncomingCall(true);
           toast('Incoming video call', {
             description: 'Someone is trying to reach you via video call',

@@ -1,3 +1,4 @@
+
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -25,7 +26,7 @@ interface InteractionDetailsProps {
   timerRunning: boolean;
   sessionStartTime: string | null;
   showVideoCall: boolean;
-  startVideoCall: (role: 'consultant' | 'user') => void;
+  startVideoCall: () => void;
   endCallConfirmOpen: boolean;
   setEndCallConfirmOpen: (open: boolean) => void;
   confirmEndCall: () => void;
@@ -44,9 +45,7 @@ const InteractionDetails = ({
 }: InteractionDetailsProps) => {
   const isConsultantView = () => {
     const urlParams = new URLSearchParams(window.location.search);
-    const viewParam = urlParams.get('view');
-    
-    return viewParam === 'consultant';
+    return urlParams.get('view') === 'consultant';
   };
 
   return (
@@ -129,7 +128,7 @@ const InteractionDetails = ({
         {interaction.interaction_type === 'video' && !showVideoCall && (
           <Button 
             className="w-full dark:bg-indigo-800/50" 
-            onClick={() => startVideoCall(isConsultantView() ? 'consultant' : 'user')}
+            onClick={startVideoCall}
           >
             {isConsultantView() ? 'Join Video Call' : 'Start Video Call'}
           </Button>
