@@ -106,9 +106,14 @@ const Dashboard = () => {
         const interactionsWithConsultants = await Promise.all(
           data.map(async (interaction) => {
             // Safely access consultant_id from metadata which could be null, undefined or an object
-            const consultantId = interaction.metadata && 
-              typeof interaction.metadata === 'object' ? 
-              interaction.metadata.consultant_id : undefined;
+            let consultantId = undefined;
+            
+            if (interaction.metadata && 
+                typeof interaction.metadata === 'object' && 
+                !Array.isArray(interaction.metadata)) {
+              // Now we know metadata is an object, we can safely access consultant_id
+              consultantId = (interaction.metadata as { [key: string]: any }).consultant_id;
+            }
             
             if (consultantId) {
               const { data: consultantData, error: consultantError } = await supabase
@@ -161,9 +166,14 @@ const Dashboard = () => {
         const interactionsWithConsultants = await Promise.all(
           data.map(async (interaction) => {
             // Safely access consultant_id from metadata which could be null, undefined or an object
-            const consultantId = interaction.metadata && 
-              typeof interaction.metadata === 'object' ? 
-              interaction.metadata.consultant_id : undefined;
+            let consultantId = undefined;
+            
+            if (interaction.metadata && 
+                typeof interaction.metadata === 'object' && 
+                !Array.isArray(interaction.metadata)) {
+              // Now we know metadata is an object, we can safely access consultant_id
+              consultantId = (interaction.metadata as { [key: string]: any }).consultant_id;
+            }
             
             if (consultantId) {
               const { data: consultantData, error: consultantError } = await supabase
