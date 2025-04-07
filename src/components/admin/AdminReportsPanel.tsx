@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow 
@@ -20,7 +19,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// Mock report data - in a real app, this would come from your database
 const mockData = {
   stats: {
     totalReports: 48,
@@ -129,7 +127,6 @@ const AdminReportsPanel = () => {
   const [selectedReport, setSelectedReport] = useState<any>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   
-  // Filter reports based on active tab
   const filteredReports = mockData.reports.filter(report => {
     if (activeTab === 'all') return true;
     if (activeTab === 'open') return report.status === 'open';
@@ -172,14 +169,28 @@ const AdminReportsPanel = () => {
   };
   
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date);
+    if (!dateString || dateString === '') {
+      return 'N/A';
+    }
+    
+    try {
+      const date = new Date(dateString);
+      
+      if (isNaN(date.getTime())) {
+        return 'Invalid date';
+      }
+      
+      return new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(date);
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Invalid date';
+    }
   };
   
   const handleViewDetails = (report: any) => {
@@ -188,13 +199,11 @@ const AdminReportsPanel = () => {
   };
   
   const handleResolveReport = (reportId: string) => {
-    // In a real app, this would update the database
     console.log(`Resolving report ${reportId}`);
     setDetailsDialogOpen(false);
   };
   
   const handleBanUser = (userId: string) => {
-    // In a real app, this would update the database
     console.log(`Banning user ${userId}`);
     setDetailsDialogOpen(false);
   };
@@ -363,13 +372,12 @@ const AdminReportsPanel = () => {
         </TabsContent>
       </Tabs>
       
-      {/* Report Details Dialog */}
       <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Report Details</DialogTitle>
             <DialogDescription>
-              Report #{selectedReport?.id} - {formatDate(selectedReport?.date || '')}
+              Report #{selectedReport?.id} - {selectedReport ? formatDate(selectedReport.date) : ''}
             </DialogDescription>
           </DialogHeader>
           
