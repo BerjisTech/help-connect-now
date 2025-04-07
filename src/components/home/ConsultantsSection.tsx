@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
@@ -18,7 +17,6 @@ const fallbackConsultants: ConsultantData[] = [
     avatar_url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
     expertise: ['Digital Marketing', 'Brand Strategy'],
     availability: 'available'
-
   },
   {
     id: '2',
@@ -66,7 +64,7 @@ const ConsultantsSection = () => {
         console.log(data)
 
         if (data && Array.isArray(data) && data.length > 0) {
-          // Transform the data to our Consultant format
+          // Transform the data to our ConsultantData format
           const formattedConsultants: ConsultantData[] = data.map((item: any) => ({
             id: item.id,
             name: item.display_name,
@@ -75,7 +73,12 @@ const ConsultantsSection = () => {
             rating: item.rating || 4.5,
             avatar_url: item.avatar_url || `https://images.unsplash.com/photo-${Math.floor(Math.random() * 1000000)}?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80`,
             expertise: item.expertise || ['Consulting'],
-            availability: item.availability
+            availability: item.availability,
+            created_at: item.created_at,
+            updated_at: item.updated_at,
+            hourly_rate: item.hourly_rate,
+            review_count: item.review_count,
+            bio: item.bio
           }));
           
           setConsultants(formattedConsultants);

@@ -10,7 +10,7 @@ import { FilterBar } from '@/components/browse/FilterBar';
 import { ProblemCard } from '@/components/browse/ProblemCard';
 import { ConsultantsSection } from '@/components/browse/ConsultantsSection';
 import { HelpersSection } from '@/components/browse/HelpersSection';
-import { Profile } from '@/components/browse/types';
+import { Profile, Consultant } from '@/components/browse/types';
 import { ConsultantData } from '@/components/interaction/types';
 
 const Browse = () => {
@@ -67,15 +67,22 @@ const Browse = () => {
       }
 
       if (data && Array.isArray(data) && data.length > 0) {
+        // Transform the database consultant records to our ConsultantData format
         const formattedConsultants: ConsultantData[] = data.map((item: any) => ({
           id: item.id,
-          name: item.display_name,
+          name: item.display_name, // Set name equal to display_name
           display_name: item.display_name,
           industry: item.industry || 'Consultant',
           rating: item.rating || 4.5,
           avatar_url: item.avatar_url || `https://images.unsplash.com/photo-${Math.floor(Math.random() * 1000000)}?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80`,
           expertise: item.expertise || ['Consulting'],
-          availability: item.availability
+          availability: item.availability,
+          // Add the additional fields from the database
+          created_at: item.created_at,
+          updated_at: item.updated_at,
+          hourly_rate: item.hourly_rate,
+          review_count: item.review_count,
+          bio: item.bio
         }));
         
         setConsultants(formattedConsultants);

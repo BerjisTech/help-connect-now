@@ -20,5 +20,9 @@ export interface InteractionData {
   updated_at?: string;
 }
 
-// Add the missing Consultant type for ConsultantsGrid and ConsultantsSection
-export type Consultant = Database['public']['Tables']['consultants']['Row'];
+// Update the Consultant type definition to match the database structure
+// and include the 'name' property needed by the components
+export type Consultant = Database['public']['Tables']['consultants']['Row'] & {
+  name: string; // Add the name property required by ConsultantData
+};
+

@@ -1,4 +1,3 @@
-
 export interface InteractionData {
   id: string;
   created_at: string;
@@ -17,7 +16,7 @@ export interface InteractionData {
 export interface ConsultantData {
   id: string;
   display_name: string;
-  name: string; // This was missing but required
+  name: string;
   bio?: string;
   expertise?: string[];
   industry: string;
@@ -25,6 +24,10 @@ export interface ConsultantData {
   avatar_url: string;
   availability?: string;
   allowAnonymous?: boolean;
+  created_at?: string;
+  updated_at?: string;
+  hourly_rate?: number;
+  review_count?: number;
 }
 
 export interface MessageData {
@@ -37,7 +40,6 @@ export interface MessageData {
 }
 
 export interface ProfileConfig {
-  // Hero section configuration
   heroConfig: {
     backgroundImage?: string;
     backgroundColor?: string;
@@ -48,21 +50,17 @@ export interface ProfileConfig {
     tagline: string;
     showImage: boolean;
   };
-  // Trust indicators configuration
   trustConfig: {
     showTrustIndicators: boolean;
     companyClients?: number;
     individualClients?: number;
   };
-  // Reviews configuration
   reviewsConfig: {
     showReviews: boolean;
   };
-  // Pricing configuration
   pricingConfig: {
     models: PricingModel[];
   };
-  // FAQ configuration
   faqConfig: {
     questions: FAQItem[];
   };
