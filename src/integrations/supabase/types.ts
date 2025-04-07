@@ -240,6 +240,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      delete_orphaned_consultants: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       get_consultants: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -256,6 +260,10 @@ export type Database = {
           review_count: number | null
           updated_at: string | null
         }[]
+      }
+      sync_profile_avatars_to_consultants: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
     }
     Enums: {

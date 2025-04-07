@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -46,8 +45,7 @@ const AdminConsultantsPanel = () => {
   const syncProfileAvatars = async () => {
     setSyncInProgress(true);
     try {
-      // Call the RPC function to sync avatars
-      const { error } = await supabase.rpc('sync_profile_avatars_to_consultants');
+      const { data, error } = await supabase.rpc('sync_profile_avatars_to_consultants', {});
       
       if (error) throw error;
       
@@ -72,14 +70,13 @@ const AdminConsultantsPanel = () => {
   const deleteOrphanedConsultants = async () => {
     setDeleteOrphansInProgress(true);
     try {
-      // Call the RPC function to delete orphaned consultants
-      const { error } = await supabase.rpc('delete_orphaned_consultants');
+      const { data, error } = await supabase.rpc('delete_orphaned_consultants', {});
       
       if (error) throw error;
       
       toast({
         title: 'Cleanup Complete',
-        description: 'Orphaned consultants have been removed.'
+        description: `${data} orphaned consultants have been removed.`
       });
       
       refetch();

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -75,7 +74,6 @@ const defaultProfileConfig: ProfileConfig = {
   }
 };
 
-// Helper function to get profile config from storage
 const getStoredProfileConfig = (consultantId: string): ProfileConfig | null => {
   try {
     const storedConfig = sessionStorage.getItem(`profileConfig_${consultantId}`);
@@ -86,7 +84,6 @@ const getStoredProfileConfig = (consultantId: string): ProfileConfig | null => {
   }
 };
 
-// Helper function to store profile config
 const storeProfileConfig = (consultantId: string, config: ProfileConfig): void => {
   try {
     sessionStorage.setItem(`profileConfig_${consultantId}`, JSON.stringify(config));
@@ -109,10 +106,8 @@ const ConsultantProfile = () => {
       
       setLoading(true);
       try {
-        // Check if we're on a development environment
         const isDevelopment = process.env.NODE_ENV === 'development';
         
-        // Fetch consultant data
         const { data: consultantData, error: consultantError } = await supabase
           .from('profiles')
           .select('*')
@@ -124,27 +119,23 @@ const ConsultantProfile = () => {
           throw consultantError;
         }
         
-        // Check if current user
         const { data: { user } } = await supabase.auth.getUser();
         const isOwner = user?.id === id;
         setIsCurrentUser(isOwner);
         
-        // Set consultant data
         if (consultantData) {
           setConsultant({
             id: consultantData.id || id,
             display_name: consultantData.display_name || 'Consultant',
-            name: consultantData.display_name || 'Consultant',
             avatar_url: consultantData.avatar_url,
             bio: consultantData.bio || '',
             industry: consultantData.industry || '',
             expertise: consultantData.expertise || [],
             rating: consultantData.rating || 4.5,
             availability: consultantData.availability || 'available',
-            allowAnonymous: true // Default to allowing anonymous interactions
+            allowAnonymous: true
           });
           
-          // Try to get stored profile config
           const storedConfig = getStoredProfileConfig(id);
           if (storedConfig) {
             setProfileConfig(storedConfig);
@@ -165,7 +156,6 @@ const ConsultantProfile = () => {
     if (!consultant || !id) return;
     
     try {
-      // Store the config in sessionStorage instead of database
       storeProfileConfig(id, updatedConfig);
       setProfileConfig(updatedConfig);
       setIsEditing(false);
