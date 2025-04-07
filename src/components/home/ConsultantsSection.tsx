@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
@@ -5,47 +6,6 @@ import { toast } from 'sonner';
 import ConsultantCard from './ConsultantCard';
 import { supabase } from '@/integrations/supabase/client';
 import { ConsultantData } from '../interaction/types';
-
-// Fallback consultant data (in case no consultants are found in the database)
-const fallbackConsultants: ConsultantData[] = [
-  {
-    id: '1',
-    name: 'Sarah Johnson',
-    display_name: 'Sarah Johnson',
-    industry: 'Marketing',
-    rating: 4.9,
-    avatar_url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    expertise: ['Digital Marketing', 'Brand Strategy'],
-    availability: 'available'
-  },
-  {
-    id: '2',
-    name: 'Michael Chen',
-    display_name: 'Michael Chen',
-    industry: 'Finance',
-    rating: 4.8,
-    avatar_url: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    expertise: ['Investment', 'Financial Planning']
-  },
-  {
-    id: '3',
-    name: 'Priya Patel',
-    display_name: 'Priya Patel',
-    industry: 'Technology',
-    rating: 4.7,
-    avatar_url: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    expertise: ['Software Development', 'UX Design']
-  },
-  {
-    id: '4',
-    name: 'James Wilson',
-    display_name: 'James Wilson',
-    industry: 'Business',
-    rating: 4.8,
-    avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    expertise: ['Strategy', 'Operations']
-  }
-];
 
 const ConsultantsSection = () => {
   const [consultants, setConsultants] = useState<ConsultantData[]>([]);
@@ -61,8 +21,6 @@ const ConsultantsSection = () => {
           throw error;
         }
 
-        console.log(data)
-
         if (data && Array.isArray(data) && data.length > 0) {
           // Transform the data to our ConsultantData format
           const formattedConsultants: ConsultantData[] = data.map((item: any) => ({
@@ -71,7 +29,7 @@ const ConsultantsSection = () => {
             display_name: item.display_name,
             industry: item.industry || 'Consultant',
             rating: item.rating || 4.5,
-            avatar_url: item.avatar_url || `https://images.unsplash.com/photo-${Math.floor(Math.random() * 1000000)}?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80`,
+            avatar_url: item.avatar_url || '',
             expertise: item.expertise || ['Consulting'],
             availability: item.availability,
             created_at: item.created_at,
@@ -83,13 +41,14 @@ const ConsultantsSection = () => {
           
           setConsultants(formattedConsultants);
         } else {
-          // If no consultants found in DB, use fallback data
-          setConsultants(fallbackConsultants);
+          // If no consultants found, set empty array
+          setConsultants([]);
+          toast.info('No consultants available at the moment.');
         }
       } catch (error) {
         console.error('Error fetching consultants:', error);
-        toast.error('Failed to load consultants. Using sample data instead.');
-        setConsultants(fallbackConsultants);
+        toast.error('Failed to load consultants.');
+        setConsultants([]);
       } finally {
         setLoading(false);
       }
@@ -113,7 +72,7 @@ const ConsultantsSection = () => {
             <Loader2 className="h-8 w-8 animate-spin text-indigo-600 dark:text-accent" />
             <span className="ml-2 text-indigo-600">Loading consultants...</span>
           </div>
-        ) : (
+        ) : consultants.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-16">
             {consultants.map((consultant, index) => (
               <ConsultantCard 
@@ -122,6 +81,10 @@ const ConsultantsSection = () => {
                 staggerIndex={index % 4}
               />
             ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-gray-500">No consultants available at the moment.</p>
           </div>
         )}
         

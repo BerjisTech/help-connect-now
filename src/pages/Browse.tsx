@@ -70,14 +70,13 @@ const Browse = () => {
         // Transform the database consultant records to our ConsultantData format
         const formattedConsultants: ConsultantData[] = data.map((item: any) => ({
           id: item.id,
-          name: item.display_name, // Set name equal to display_name
+          name: item.display_name,
           display_name: item.display_name,
           industry: item.industry || 'Consultant',
           rating: item.rating || 4.5,
-          avatar_url: item.avatar_url || `https://images.unsplash.com/photo-${Math.floor(Math.random() * 1000000)}?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80`,
+          avatar_url: item.avatar_url || '',
           expertise: item.expertise || ['Consulting'],
           availability: item.availability,
-          // Add the additional fields from the database
           created_at: item.created_at,
           updated_at: item.updated_at,
           hourly_rate: item.hourly_rate,
@@ -86,10 +85,14 @@ const Browse = () => {
         }));
         
         setConsultants(formattedConsultants);
+      } else {
+        setConsultants([]);
+        toast.info('No consultants available at the moment.');
       }
     } catch (error) {
       console.error('Error fetching consultants:', error);
       toast.error('Failed to load consultants');
+      setConsultants([]);
     }
   };
 
