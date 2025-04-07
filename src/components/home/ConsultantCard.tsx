@@ -140,7 +140,7 @@ const ConsultantCard = ({ consultant, staggerIndex }: ConsultantCardProps) => {
         <p className="text-white/80 mb-3">{consultant.industry || 'Consultant'}</p>
         <div className="flex flex-wrap gap-2 mb-4">
           {consultant.expertise && consultant.expertise.length > 0 ? (
-            consultant.expertise.map((skill, index) => (
+            consultant.expertise.slice(0, 3).map((skill, index) => (
               <span 
                 key={index} 
                 className="px-2 py-1 bg-white/20 rounded-full text-xs"
