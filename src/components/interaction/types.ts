@@ -17,7 +17,7 @@ export interface InteractionData {
 export interface ConsultantData {
   id: string;
   display_name: string;
-  name: string;
+  name: string; // This was missing but required
   bio?: string;
   expertise?: string[];
   industry: string;

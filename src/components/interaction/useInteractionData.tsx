@@ -81,7 +81,11 @@ export const useInteractionData = (interactionId: string | null) => {
           console.error('Error fetching consultant:', consultantError);
           toast.error('Could not load consultant information');
         } else {
-          setConsultant(consultantData);
+          // Create a ConsultantData object with the required name property
+          setConsultant({
+            ...consultantData,
+            name: consultantData.display_name // Add the name property based on display_name
+          });
         }
       }
 

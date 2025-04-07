@@ -57,19 +57,32 @@ const AdminConsultationsPanel = () => {
       if (completedError) throw completedError;
       
       // Get count by interaction type
-      const { data: typeData, error: typeError } = await supabase
+      const { data: videoData, error: videoError } = await supabase
         .from('interactions')
-        .select('interaction_type, count')
-        .select('interaction_type')
-        .group('interaction_type');
-      
-      if (typeError) throw typeError;
+        .select('*', { count: 'exact', head: true })
+        .eq('interaction_type', 'video');
+        
+      if (videoError) throw videoError;
+        
+      const { data: audioData, error: audioError } = await supabase
+        .from('interactions')
+        .select('*', { count: 'exact', head: true })
+        .eq('interaction_type', 'audio');
+        
+      if (audioError) throw audioError;
+        
+      const { data: textData, error: textError } = await supabase
+        .from('interactions')
+        .select('*', { count: 'exact', head: true })
+        .eq('interaction_type', 'text');
+        
+      if (textError) throw textError;
       
       // Calculate type counts
       const typeCounts = {
-        video: typeData?.filter(i => i.interaction_type === 'video').length || 0,
-        audio: typeData?.filter(i => i.interaction_type === 'audio').length || 0,
-        text: typeData?.filter(i => i.interaction_type === 'text').length || 0
+        video: videoData?.length || 0,
+        audio: audioData?.length || 0,
+        text: textData?.length || 0
       };
       
       return {
@@ -88,15 +101,21 @@ const AdminConsultationsPanel = () => {
         .from('interactions')
         .select(`
           *,
-          helper:helper_id(display_name, avatar_url),
-          seeker:seeker_id(display_name, avatar_url)
+          helper:profiles!helper_id(display_name, avatar_url),
+          seeker:profiles!seeker_id(display_name, avatar_url)
         `)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data as (InteractionData & {
-        helper: { display_name: string; avatar_url: string | null } | null;
-        seeker: { display_name: string; avatar_url: string | null } | null;
+      
+      // Handle potentially null related data
+      return (data || []).map(interaction => ({
+        ...interaction,
+        helper: interaction.helper || { display_name: 'N/A', avatar_url: null },
+        seeker: interaction.seeker || { display_name: 'N/A', avatar_url: null }
+      })) as (InteractionData & {
+        helper: { display_name: string; avatar_url: string | null };
+        seeker: { display_name: string; avatar_url: string | null };
       })[];
     }
   });

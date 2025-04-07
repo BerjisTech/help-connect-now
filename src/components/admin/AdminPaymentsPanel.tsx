@@ -246,8 +246,8 @@ const AdminPaymentsPanel = () => {
                       <TableCell>{formatDate(transaction.date)}</TableCell>
                       <TableCell>
                         <Badge
-                          variant={transaction.status === 'completed' ? 'success' : 'secondary'}
-                          className="flex items-center gap-1"
+                          variant={transaction.status === 'completed' ? 'secondary' : 'secondary'}
+                          className={`flex items-center gap-1 ${transaction.status === 'completed' ? 'bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-400' : ''}`}
                         >
                           {getStatusIcon(transaction.status)}
                           <span className="capitalize">{transaction.status}</span>

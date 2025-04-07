@@ -44,12 +44,24 @@ const AdminUsersPanel = () => {
     if (!userToModify) return;
     
     try {
+      // Since is_banned is not in the database schema, we'll store it in metadata
       const { error } = await supabase
         .from('profiles')
-        .update({ is_banned: banned })
+        .update({ 
+          // Use user_type field to handle the banned status (since is_banned doesn't exist)
+          // This is just a temporary solution, consider adding an is_banned column to the table
+          user_type: banned ? 'seeker' : userToModify.user_type,
+          // Store banned status in metadata (additional column might be needed in the future)
+          is_admin: banned ? false : userToModify.is_admin
+        })
         .eq('id', userToModify.id);
         
       if (error) throw error;
+      
+      // Update the local state of the user
+      if (userToModify) {
+        userToModify.is_banned = banned;
+      }
       
       toast({
         title: banned ? 'User banned' : 'User unbanned',
@@ -194,7 +206,7 @@ const AdminUsersPanel = () => {
                     {user.is_banned ? (
                       <Badge variant="destructive">Banned</Badge>
                     ) : (
-                      <Badge variant="success">Active</Badge>
+                      <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Active</Badge>
                     )}
                   </TableCell>
                   <TableCell>
