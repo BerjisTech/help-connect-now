@@ -105,7 +105,10 @@ const Dashboard = () => {
       if (data && data.length > 0) {
         const interactionsWithConsultants = await Promise.all(
           data.map(async (interaction) => {
-            const consultantId = interaction.metadata?.consultant_id;
+            // Safely access consultant_id from metadata which could be null, undefined or an object
+            const consultantId = interaction.metadata && 
+              typeof interaction.metadata === 'object' ? 
+              interaction.metadata.consultant_id : undefined;
             
             if (consultantId) {
               const { data: consultantData, error: consultantError } = await supabase
@@ -157,7 +160,10 @@ const Dashboard = () => {
       if (data && data.length > 0) {
         const interactionsWithConsultants = await Promise.all(
           data.map(async (interaction) => {
-            const consultantId = interaction.metadata?.consultant_id;
+            // Safely access consultant_id from metadata which could be null, undefined or an object
+            const consultantId = interaction.metadata && 
+              typeof interaction.metadata === 'object' ? 
+              interaction.metadata.consultant_id : undefined;
             
             if (consultantId) {
               const { data: consultantData, error: consultantError } = await supabase
