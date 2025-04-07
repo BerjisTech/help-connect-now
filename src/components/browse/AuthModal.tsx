@@ -53,6 +53,9 @@ export const AuthModal = ({
     }
   };
 
+  // Default to true if allowAnonymous is not defined
+  const allowAnonymous = consultant.allowAnonymous !== false;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md dark:bg-indigo-950 dark:text-accent">
@@ -62,14 +65,14 @@ export const AuthModal = ({
             {interactionType.charAt(0).toUpperCase() + interactionType.slice(1)} with {consultant.display_name}
           </DialogTitle>
           <DialogDescription>
-            {consultant.allowAnonymous 
+            {allowAnonymous 
               ? "You're not logged in. How would you like to proceed?" 
               : `${consultant.display_name} doesn't allow anonymous calls. Please log in or create an account to connect.`}
           </DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-col gap-4 py-4">
-          {consultant.allowAnonymous && (
+          {allowAnonymous && (
             <Button onClick={onProceedAnonymously} variant="outline" className="w-full justify-start dark:bg-indigo-950 dark:text-accent">
               <span className="mr-2">👤</span>
               Continue anonymously

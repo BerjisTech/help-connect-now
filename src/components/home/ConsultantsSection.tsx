@@ -14,14 +14,13 @@ const ConsultantsSection = () => {
   useEffect(() => {
     const fetchConsultants = async () => {
       try {
-        // Use the RPC function to fetch consultants
+        setLoading(true);
+        // Use the RPC function to fetch real consultants from the database
         const { data, error } = await supabase.rpc('get_consultants');
 
         if (error) {
           throw error;
         }
-
-        console.log(data)
 
         if (data && Array.isArray(data) && data.length > 0) {          
           setConsultants(data);
@@ -55,15 +54,19 @@ const ConsultantsSection = () => {
             <Loader2 className="h-8 w-8 animate-spin text-indigo-600 dark:text-accent" />
             <span className="ml-2 text-indigo-600">Loading consultants...</span>
           </div>
-        ) : (
+        ) : consultants.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-16">
             {consultants.map((consultant, index) => (
               <ConsultantCard 
-                key={typeof consultant.id === 'string' ? consultant.id : consultant.id} 
+                key={consultant.id.toString()}
                 consultant={consultant} 
                 staggerIndex={index % 4}
               />
             ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-gray-500">No consultants available at the moment.</p>
           </div>
         )}
         

@@ -2,6 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { ShieldAlert } from 'lucide-react';
 
 interface AdminSectionProps {
   isAdmin: boolean;
@@ -19,8 +20,9 @@ const AdminSection: React.FC<AdminSectionProps> = ({ isAdmin }) => {
       <Button 
         variant="outline" 
         className="bg-white dark:bg-purple-900/30 hover:bg-purple-50 dark:hover:bg-purple-800/40 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-700"
-        onClick={() => navigate('/dashboard')}
+        onClick={() => navigate('/admin')}
       >
+        <ShieldAlert className="mr-2 h-4 w-4" />
         Go to Admin Dashboard
       </Button>
     </div>

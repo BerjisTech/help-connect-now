@@ -1,10 +1,12 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useWebRTC } from './useWebRTC';
 import VideoDisplay from './VideoDisplay';
 import MediaControls from './MediaControls';
 import ErrorDisplay from './ErrorDisplay';
 import { VideoCallProps } from './types';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const VideoCall = ({ 
   interactionId, 
@@ -14,11 +16,10 @@ const VideoCall = ({
   joinAs
 }: VideoCallProps) => {
   const [endCallConfirmOpen, setEndCallConfirmOpen] = useState(false);
+  const [notificationSent, setNotificationSent] = useState(false);
   
-  // Determine channel name based on role
-  const channelName = joinAs 
-    ? `videocall:${interactionId}:${joinAs}` 
-    : `videocall:${interactionId}`;
+  // Determine channel name based on interactionId only to ensure both parties use the same channel
+  const channelName = `videocall:${interactionId}`;
   
   const {
     localStream,
@@ -36,6 +37,44 @@ const VideoCall = ({
     endCall,
     retryConnection
   } = useWebRTC(interactionId, isInitiator, onEndCall, channelName);
+
+  // Send notification to the other participant when initiating a call
+  useEffect(() => {
+    const sendCallNotification = async () => {
+      if (!notificationSent && interactionId) {
+        try {
+          // Add a notification to the database
+          await supabase
+            .from('messages')
+            .insert({
+              interaction_id: interactionId,
+              content: `A video call has been initiated.`,
+              sender_id: joinAs === 'consultant' ? participantId : null,
+              anonymous_sender_id: joinAs === 'user' ? 'system' : null,
+              is_system_message: true,
+              requires_attention: true
+            });
+          
+          // Send a real-time message through the signaling channel
+          supabase.channel(channelName).send({
+            type: 'broadcast',
+            event: 'call-notification',
+            payload: { 
+              message: 'Incoming call', 
+              interactionId: interactionId
+            }
+          });
+          
+          console.log('Call notification sent');
+          setNotificationSent(true);
+        } catch (error) {
+          console.error('Error sending call notification:', error);
+        }
+      }
+    };
+
+    sendCallNotification();
+  }, [interactionId, participantId, joinAs, notificationSent, channelName]);
 
   return (
     <div className="flex flex-col h-full">

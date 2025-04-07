@@ -9,7 +9,6 @@ import { toast } from 'sonner';
 import { FilterBar } from '@/components/browse/FilterBar';
 import { ProblemCard } from '@/components/browse/ProblemCard';
 import { ConsultantsSection } from '@/components/browse/ConsultantsSection';
-import { HelpersSection } from '@/components/browse/HelpersSection';
 import { Profile } from '@/components/browse/types';
 import { ConsultantData } from '@/components/interaction/types';
 
@@ -20,48 +19,20 @@ const Browse = () => {
   
   const [searchQuery, setSearchQuery] = useState('');
   const [industry, setIndustry] = useState<string>('');
-  const [helpers, setHelpers] = useState<Profile[]>([]);
   const [consultants, setConsultants] = useState<ConsultantData[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
 
   useEffect(() => {
-    fetchHelpers();
     fetchConsultants();
   }, [industry]);
 
-  const fetchHelpers = async () => {
+  const fetchConsultants = async () => {
     setLoading(true);
     try {
-      let query = supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_type', 'helper')
-        .order('rating', { ascending: false });
-      
-      if (industry) {
-        query = query.eq('industry', industry);
-      }
-      
-      const { data, error } = await query;
-      
-      if (error) {
-        throw error;
-      }
-      
-      setHelpers(data || []);
-    } catch (error) {
-      console.error('Error fetching helpers:', error);
-      toast.error('Failed to load helpers');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchConsultants = async () => {
-    try {
+      // Get consultants from the database using the RPC function
       const { data, error } = await supabase.rpc('get_consultants');
-
+      
       if (error) {
         throw error;
       }
@@ -72,20 +43,11 @@ const Browse = () => {
     } catch (error) {
       console.error('Error fetching consultants:', error);
       toast.error('Failed to load consultants');
+      setConsultants([]);
+    } finally {
+      setLoading(false);
     }
   };
-
-  const filteredHelpers = helpers.filter(helper => {
-    if (!searchQuery) return true;
-    
-    const searchLower = searchQuery.toLowerCase();
-    return (
-      helper.display_name?.toLowerCase().includes(searchLower) ||
-      helper.industry?.toLowerCase().includes(searchLower) ||
-      helper.expertise?.some(exp => exp.toLowerCase().includes(searchLower)) ||
-      helper.bio?.toLowerCase().includes(searchLower)
-    );
-  });
 
   const filteredConsultants = consultants.filter(consultant => {
     if (!searchQuery) return true;

@@ -59,6 +59,28 @@ export const ConsultantCard = ({ consultant, onInteraction }: ConsultantCardProp
     navigate(`/consultant/${consultant.id}`);
   };
 
+  // Get proper avatar URL based on storage or external URL
+  const getAvatarUrl = () => {
+    if (!consultant.avatar_url) {
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(consultant.name)}`;
+    }
+    
+    // Check if it's a Supabase storage URL or contains 'avatars/'
+    if (consultant.avatar_url.includes('storage/v1/object/public/avatars/')) {
+      return consultant.avatar_url;
+    } 
+    
+    // Check if it's a full URL (contains http or https)
+    if (consultant.avatar_url.includes('http')) {
+      return consultant.avatar_url;
+    }
+    
+    // Default placeholder if none of the above
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(consultant.name)}`;
+  };
+
+  const avatarUrl = getAvatarUrl();
+
   return (
     <>
       <Card 
@@ -71,6 +93,10 @@ export const ConsultantCard = ({ consultant, onInteraction }: ConsultantCardProp
             src={consultant.avatar_url} 
             alt={consultant.display_name}
             className="w-full h-full object-cover"
+            onError={(e) => {
+              // If image fails to load, use fallback
+              (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(consultant.name)}`;
+            }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent">
             <div className="absolute bottom-3 left-3 right-3 text-white">
@@ -97,14 +123,22 @@ export const ConsultantCard = ({ consultant, onInteraction }: ConsultantCardProp
         </CardHeader>
         <CardContent className="pt-0">
           <div className="flex flex-wrap gap-1 mb-2">
-            {consultant.expertise.slice(0, 3).map((exp, i) => (
-              <Badge key={i} variant="secondary" className="text-xs dark:bg-indigo-700/40 dark:text-accent">
-                {exp}
-              </Badge>
-            ))}
-            {consultant.expertise.length > 3 && (
+            {consultant.expertise && consultant.expertise.length > 0 ? (
+              <>
+                {consultant.expertise.slice(0, 3).map((exp, i) => (
+                  <Badge key={i} variant="secondary" className="text-xs dark:bg-indigo-700/40 dark:text-accent">
+                    {exp}
+                  </Badge>
+                ))}
+                {consultant.expertise.length > 3 && (
+                  <Badge variant="outline" className="text-xs dark:bg-indigo-700/40 dark:text-accent">
+                    +{consultant.expertise.length - 3} more
+                  </Badge>
+                )}
+              </>
+            ) : (
               <Badge variant="outline" className="text-xs dark:bg-indigo-700/40 dark:text-accent">
-                +{consultant.expertise.length - 3} more
+                No specialties listed
               </Badge>
             )}
           </div>

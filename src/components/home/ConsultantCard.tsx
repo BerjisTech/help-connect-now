@@ -87,6 +87,28 @@ const ConsultantCard = ({ consultant, staggerIndex }: ConsultantCardProps) => {
 
   const isOffline = consultant.availability === 'offline';
 
+  // Get proper avatar URL with fallback
+  const getAvatarUrl = () => {
+    if (!consultant.avatar_url) {
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(consultant.name)}`;
+    }
+    
+    // Check if it's a Supabase storage URL or contains 'avatars/'
+    if (consultant.avatar_url.includes('storage/v1/object/public/avatars/')) {
+      return consultant.avatar_url;
+    } 
+    
+    // Check if it's a full URL (contains http or https)
+    if (consultant.avatar_url.includes('http')) {
+      return consultant.avatar_url;
+    }
+    
+    // Default placeholder if none of the above
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(consultant.name)}`;
+  };
+
+  const avatarUrl = getAvatarUrl();
+
   return (
     <div 
       className={`relative h-96 rounded-xl overflow-hidden shadow-lg group transition-all duration-300 hover:-translate-y-2 ${staggerClass} cursor-pointer`}
@@ -94,14 +116,14 @@ const ConsultantCard = ({ consultant, staggerIndex }: ConsultantCardProps) => {
     >
       <div 
         className="absolute inset-0 bg-cover bg-center z-0" 
-        style={{ backgroundImage: `url(${consultant.avatar_url})` }}
+        style={{ backgroundImage: `url(${avatarUrl})` }}
       />
       <div className={`absolute inset-0 z-10 ${getAvailabilityClass()}`} />
       <div className="absolute bottom-0 left-0 right-0 p-6 z-20 text-white">
         <div className="flex items-center mb-1">
           <span className="flex items-center text-yellow-300 mr-1">
             <Star className="w-4 h-4 fill-current" />
-            <span className="ml-1">{consultant.rating}</span>
+            <span className="ml-1">{consultant.rating || '0.0'}</span>
           </span>
           
           {consultant.availability && (
@@ -117,14 +139,20 @@ const ConsultantCard = ({ consultant, staggerIndex }: ConsultantCardProps) => {
         <h3 className="text-xl font-bold mb-1">{consultant.display_name}</h3>
         <p className="text-white/80 mb-3">{consultant.industry}</p>
         <div className="flex flex-wrap gap-2 mb-4">
-          {consultant.expertise.map((skill, index) => (
-            <span 
-              key={index} 
-              className="px-2 py-1 bg-white/20 rounded-full text-xs"
-            >
-              {skill}
+          {consultant.expertise && consultant.expertise.length > 0 ? (
+            consultant.expertise.slice(0, 3).map((skill, index) => (
+              <span 
+                key={index} 
+                className="px-2 py-1 bg-white/20 rounded-full text-xs"
+              >
+                {skill}
+              </span>
+            ))
+          ) : (
+            <span className="px-2 py-1 bg-white/20 rounded-full text-xs">
+              No specialties listed
             </span>
-          ))}
+          )}
         </div>
         <div className="flex gap-2">
           <Button 

@@ -86,9 +86,10 @@ const Dashboard = () => {
 
   const fetchInteractions = async (userId: string, status: string) => {
     try {
+      // First fetch interactions
       let query = supabase
         .from('interactions')
-        .select('*, consultants:metadata->consultant_id(*)')
+        .select('*')
         .eq('seeker_id', userId)
         .order('created_at', { ascending: false });
         
@@ -99,7 +100,44 @@ const Dashboard = () => {
       const { data, error } = await query;
       
       if (error) throw error;
-      setInteractions(data || []);
+      
+      // For each interaction, fetch the consultant data if available
+      if (data && data.length > 0) {
+        const interactionsWithConsultants = await Promise.all(
+          data.map(async (interaction) => {
+            // Safely access consultant_id from metadata which could be null, undefined or an object
+            let consultantId = undefined;
+            
+            if (interaction.metadata && 
+                typeof interaction.metadata === 'object' && 
+                !Array.isArray(interaction.metadata)) {
+              // Now we know metadata is an object, we can safely access consultant_id
+              consultantId = (interaction.metadata as { [key: string]: any }).consultant_id;
+            }
+            
+            if (consultantId) {
+              const { data: consultantData, error: consultantError } = await supabase
+                .from('consultants')
+                .select('*')
+                .eq('id', consultantId)
+                .single();
+                
+              if (consultantError) {
+                console.error('Error fetching consultant:', consultantError);
+                return { ...interaction, consultants: null };
+              }
+              
+              return { ...interaction, consultants: consultantData };
+            }
+            
+            return { ...interaction, consultants: null };
+          })
+        );
+        
+        setInteractions(interactionsWithConsultants);
+      } else {
+        setInteractions(data || []);
+      }
     } catch (error) {
       console.error('Error fetching interactions:', error);
       toast.error('Failed to load your interactions');
@@ -108,9 +146,10 @@ const Dashboard = () => {
 
   const fetchAnonymousInteractions = async (anonymousId: string, status: string) => {
     try {
+      // First fetch interactions
       let query = supabase
         .from('interactions')
-        .select('*, consultants:metadata->consultant_id(*)')
+        .select('*')
         .eq('anonymous_seeker_id', anonymousId)
         .order('created_at', { ascending: false });
         
@@ -121,7 +160,44 @@ const Dashboard = () => {
       const { data, error } = await query;
       
       if (error) throw error;
-      setInteractions(data || []);
+      
+      // For each interaction, fetch the consultant data if available
+      if (data && data.length > 0) {
+        const interactionsWithConsultants = await Promise.all(
+          data.map(async (interaction) => {
+            // Safely access consultant_id from metadata which could be null, undefined or an object
+            let consultantId = undefined;
+            
+            if (interaction.metadata && 
+                typeof interaction.metadata === 'object' && 
+                !Array.isArray(interaction.metadata)) {
+              // Now we know metadata is an object, we can safely access consultant_id
+              consultantId = (interaction.metadata as { [key: string]: any }).consultant_id;
+            }
+            
+            if (consultantId) {
+              const { data: consultantData, error: consultantError } = await supabase
+                .from('consultants')
+                .select('*')
+                .eq('id', consultantId)
+                .single();
+                
+              if (consultantError) {
+                console.error('Error fetching consultant:', consultantError);
+                return { ...interaction, consultants: null };
+              }
+              
+              return { ...interaction, consultants: consultantData };
+            }
+            
+            return { ...interaction, consultants: null };
+          })
+        );
+        
+        setInteractions(interactionsWithConsultants);
+      } else {
+        setInteractions(data || []);
+      }
     } catch (error) {
       console.error('Error fetching anonymous interactions:', error);
       toast.error('Failed to load your interactions');

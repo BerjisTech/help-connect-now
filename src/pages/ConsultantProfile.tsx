@@ -141,6 +141,7 @@ const ConsultantProfile = () => {
             expertise: consultantData.expertise || [],
             rating: consultantData.rating || 4.5,
             availability: consultantData.availability || 'available',
+            allowAnonymous: true // Default to allowing anonymous interactions
           });
           
           // Try to get stored profile config
