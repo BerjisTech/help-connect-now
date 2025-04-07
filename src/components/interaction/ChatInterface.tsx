@@ -1,6 +1,6 @@
 
-import { useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Loader2, PhoneCall } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -10,6 +10,8 @@ import {
 } from "@/components/ui/card";
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import VideoCall from './VideoCall';
 import { MessageData } from './types';
 
@@ -22,6 +24,7 @@ interface ChatInterfaceProps {
   helperId?: string;
   onEndVideoCall: () => void;
   onSendMessage: (message: string) => Promise<void>;
+  startVideoCall: (role: 'consultant' | 'user') => void;
 }
 
 const ChatInterface = ({
@@ -33,9 +36,46 @@ const ChatInterface = ({
   helperId,
   onEndVideoCall,
   onSendMessage,
+  startVideoCall,
 }: ChatInterfaceProps) => {
   const [newMessage, setNewMessage] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
+  const [hasIncomingCall, setHasIncomingCall] = useState(false);
+
+  // Listen for call notifications
+  useEffect(() => {
+    if (!interactionId) return;
+    
+    const channelName = `videocall:${interactionId}`;
+    const channel = supabase.channel(channelName, {
+      config: {
+        broadcast: { self: true }
+      }
+    });
+
+    channel
+      .on('broadcast', { event: 'call-notification' }, ({ payload }) => {
+        console.log('Received call notification:', payload);
+        if (payload.interactionId === interactionId && payload.initiator !== joinAs) {
+          setHasIncomingCall(true);
+          toast('Incoming video call', {
+            description: 'Someone is trying to reach you via video call',
+            action: {
+              label: 'Join',
+              onClick: () => startVideoCall(joinAs)
+            },
+            duration: 10000,
+          });
+        }
+      })
+      .subscribe((status) => {
+        console.log(`Call notification subscription status: ${status}`);
+      });
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [interactionId, joinAs, startVideoCall]);
 
   const handleSendMessage = async () => {
     if (!newMessage.trim()) return;
@@ -52,8 +92,18 @@ const ChatInterface = ({
   return (
     <Card className="h-full flex flex-col dark:bg-indigo-950 dark:text-accent">
       <CardHeader>
-        <CardTitle>
+        <CardTitle className="flex items-center justify-between">
           {showVideoCall ? 'Video Call' : 'Chat'}
+          {!showVideoCall && hasIncomingCall && (
+            <Button 
+              size="sm" 
+              onClick={() => startVideoCall(joinAs)}
+              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 animate-pulse"
+            >
+              <PhoneCall className="h-4 w-4" />
+              Join Incoming Call
+            </Button>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="flex-1 overflow-y-auto">
@@ -62,7 +112,7 @@ const ChatInterface = ({
             <VideoCall
               interactionId={interactionId}
               participantId={participantId}
-              isInitiator={joinAs === 'user'}
+              isInitiator={false}
               onEndCall={onEndVideoCall}
               joinAs={joinAs}
             />
@@ -80,6 +130,7 @@ const ChatInterface = ({
               >
                 <div 
                   className={`rounded-lg px-4 py-2 max-w-[80%] ${
+                    message.is_system_message ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-100' :
                     message.sender_id === helperId 
                       ? 'bg-secondary text-secondary-foreground' 
                       : 'bg-primary text-primary-foreground'

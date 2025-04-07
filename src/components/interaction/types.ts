@@ -1,3 +1,4 @@
+
 export interface InteractionData {
   id: string;
   created_at: string;
@@ -14,70 +15,28 @@ export interface InteractionData {
 }
 
 export interface ConsultantData {
-  id: string;
-  display_name: string;
+  id: string | number;
   name: string;
-  bio?: string;
-  expertise?: string[];
+  display_name: string;
   industry: string;
+  expertise: string[];
   rating: number;
   avatar_url: string;
+  bio?: string;
   availability?: string;
-  allowAnonymous?: boolean;
-  created_at?: string;
-  updated_at?: string;
   hourly_rate?: number;
   review_count?: number;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface MessageData {
   id: string;
-  created_at: string;
   content: string;
+  created_at: string;
   interaction_id: string;
   sender_id?: string;
   anonymous_sender_id?: string;
-}
-
-export interface ProfileConfig {
-  heroConfig: {
-    backgroundImage?: string;
-    backgroundColor?: string;
-    layout: 'left-image' | 'right-image' | 'centered';
-    textAlignment: 'left' | 'center' | 'right';
-    taglineAlignment?: 'left' | 'center' | 'right';
-    intro: string;
-    tagline: string;
-    showImage: boolean;
-  };
-  trustConfig: {
-    showTrustIndicators: boolean;
-    companyClients?: number;
-    individualClients?: number;
-  };
-  reviewsConfig: {
-    showReviews: boolean;
-  };
-  pricingConfig: {
-    models: PricingModel[];
-  };
-  faqConfig: {
-    questions: FAQItem[];
-  };
-}
-
-export interface PricingModel {
-  id: string;
-  title: string;
-  price: number;
-  currency: string;
-  period?: string;
-  features: string[];
-  isHighlighted?: boolean;
-}
-
-export interface FAQItem {
-  id: string;
-  question: string;
-  answer: string;
+  is_system_message?: boolean;
+  requires_attention?: boolean;
 }

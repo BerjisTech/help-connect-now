@@ -76,6 +76,7 @@ const InteractionPage = () => {
               helperId={interaction.helper_id}
               onEndVideoCall={endVideoCall}
               onSendMessage={sendMessage}
+              startVideoCall={startVideoCall}
             />
           </div>
         </div>

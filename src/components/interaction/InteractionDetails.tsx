@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -16,7 +15,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import ConsultationTimer from './ConsultationTimer';
 import { InteractionData, ConsultantData } from './types';
@@ -44,6 +42,13 @@ const InteractionDetails = ({
   setEndCallConfirmOpen,
   confirmEndCall,
 }: InteractionDetailsProps) => {
+  const isConsultantView = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const viewParam = urlParams.get('view');
+    
+    return viewParam === 'consultant';
+  };
+
   return (
     <Card className="h-full dark:bg-indigo-950 dark:text-accent">
       <CardHeader>
@@ -122,14 +127,12 @@ const InteractionDetails = ({
       </CardContent>
       <CardFooter className="flex flex-col gap-2 items-stretch">
         {interaction.interaction_type === 'video' && !showVideoCall && (
-          <div className="flex flex-col gap-2">
-            <Button className="w-full dark:bg-indigo-800/50" onClick={() => startVideoCall('user')}>
-              Join as User
-            </Button>
-            <Button className="w-full dark:bg-indigo-400/50 dark:border-indigo-400/50" variant="outline" onClick={() => startVideoCall('consultant')}>
-              Join as Consultant
-            </Button>
-          </div>
+          <Button 
+            className="w-full dark:bg-indigo-800/50" 
+            onClick={() => startVideoCall(isConsultantView() ? 'consultant' : 'user')}
+          >
+            {isConsultantView() ? 'Join Video Call' : 'Start Video Call'}
+          </Button>
         )}
         
         {interaction.interaction_type === 'audio' && (
@@ -139,11 +142,9 @@ const InteractionDetails = ({
         )}
         
         <Dialog open={endCallConfirmOpen} onOpenChange={setEndCallConfirmOpen}>
-          <DialogTrigger asChild>
-            <Button variant="outline" className="w-full  dark:bg-red-800/50 dark:border-red-800/50">
-              End Interaction
-            </Button>
-          </DialogTrigger>
+          <Button variant="outline" className="w-full dark:bg-red-800/50 dark:border-red-800/50" onClick={() => setEndCallConfirmOpen(true)}>
+            End Interaction
+          </Button>
           <DialogContent className="dark:bg-indigo-950 dark:border-indigo-950 dark:text-accent">
             <DialogHeader>
               <DialogTitle>End this consultation?</DialogTitle>
