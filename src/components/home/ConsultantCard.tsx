@@ -90,7 +90,7 @@ const ConsultantCard = ({ consultant, staggerIndex }: ConsultantCardProps) => {
   // Get proper avatar URL with fallback
   const getAvatarUrl = () => {
     if (!consultant.avatar_url) {
-      return `https://ui-avatars.com/api/?name=${encodeURIComponent(consultant.name)}`;
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(consultant.display_name)}`;
     }
     
     // Check if it's a Supabase storage URL or contains 'avatars/'
@@ -104,7 +104,7 @@ const ConsultantCard = ({ consultant, staggerIndex }: ConsultantCardProps) => {
     }
     
     // Default placeholder if none of the above
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(consultant.name)}`;
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(consultant.display_name)}`;
   };
 
   const avatarUrl = getAvatarUrl();

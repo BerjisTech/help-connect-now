@@ -62,7 +62,7 @@ export const ConsultantCard = ({ consultant, onInteraction }: ConsultantCardProp
   // Get proper avatar URL based on storage or external URL
   const getAvatarUrl = () => {
     if (!consultant.avatar_url) {
-      return `https://ui-avatars.com/api/?name=${encodeURIComponent(consultant.name)}`;
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(consultant.display_name)}`;
     }
     
     // Check if it's a Supabase storage URL or contains 'avatars/'
@@ -76,7 +76,7 @@ export const ConsultantCard = ({ consultant, onInteraction }: ConsultantCardProp
     }
     
     // Default placeholder if none of the above
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(consultant.name)}`;
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(consultant.display_name)}`;
   };
 
   const avatarUrl = getAvatarUrl();
@@ -95,7 +95,7 @@ export const ConsultantCard = ({ consultant, onInteraction }: ConsultantCardProp
             className="w-full h-full object-cover"
             onError={(e) => {
               // If image fails to load, use fallback
-              (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(consultant.name)}`;
+              (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(consultant.display_name)}`;
             }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent">
