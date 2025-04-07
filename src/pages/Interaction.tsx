@@ -61,7 +61,8 @@ const InteractionPage = () => {
               interaction={interaction}
               consultant={consultant}
               timerRunning={timerRunning}
-              sessionStartTime={sessionStartTime}
+              // Fix: Convert Date to string for sessionStartTime prop if it's a Date
+              sessionStartTime={sessionStartTime ? sessionStartTime.toISOString() : null}
               showVideoCall={showVideoCall}
               startVideoCall={() => startVideoCall(effectiveJoinAs)}
               endCallConfirmOpen={endCallConfirmOpen}

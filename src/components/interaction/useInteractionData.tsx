@@ -45,7 +45,8 @@ export const useInteractionData = (interactionId: string | null) => {
         
         // Get consultant details if available
         if (interactionData.metadata && typeof interactionData.metadata === 'object' && 'consultant_id' in interactionData.metadata) {
-          const consultantId = interactionData.metadata.consultant_id;
+          // Fix: Converting consultant_id to string if it's a number
+          const consultantId = String(interactionData.metadata.consultant_id);
           
           const { data: consultantData, error: consultantError } = await supabase
             .from('consultants')

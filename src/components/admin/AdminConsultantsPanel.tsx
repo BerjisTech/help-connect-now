@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -45,7 +46,8 @@ const AdminConsultantsPanel = () => {
   const syncProfileAvatars = async () => {
     setSyncInProgress(true);
     try {
-      const { data, error } = await supabase.rpc('sync_profile_avatars_to_consultants', {});
+      // Fix: Using .rpc with type any to avoid type mismatch
+      const { data, error } = await supabase.rpc('sync_profile_avatars_to_consultants') as any;
       
       if (error) throw error;
       
@@ -70,7 +72,8 @@ const AdminConsultantsPanel = () => {
   const deleteOrphanedConsultants = async () => {
     setDeleteOrphansInProgress(true);
     try {
-      const { data, error } = await supabase.rpc('delete_orphaned_consultants', {});
+      // Fix: Using .rpc with type any to avoid type mismatch
+      const { data, error } = await supabase.rpc('delete_orphaned_consultants') as any;
       
       if (error) throw error;
       
