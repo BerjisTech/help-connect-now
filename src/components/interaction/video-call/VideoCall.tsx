@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useWebRTC } from './useWebRTC';
 import VideoDisplay from './VideoDisplay';
@@ -38,7 +37,6 @@ const VideoCall = ({
     retryConnection
   } = useWebRTC(interactionId, isInitiator, onEndCall, channelName);
 
-  // Listen for call acceptance/rejection
   useEffect(() => {
     if (!interactionId) return;
     
@@ -71,12 +69,10 @@ const VideoCall = ({
     };
   }, [interactionId, onEndCall, channelName]);
 
-  // Send notification to the other participant when initiating a call
   useEffect(() => {
     const sendCallNotification = async () => {
       if (!notificationSent && interactionId) {
         try {
-          // Get interaction details to send to consultant
           const { data: interactionData, error: interactionError } = await supabase
             .from('interactions')
             .select('*, metadata')
@@ -88,7 +84,6 @@ const VideoCall = ({
             throw interactionError;
           }
           
-          // Add a notification to the database
           await supabase
             .from('messages')
             .insert({
@@ -100,7 +95,6 @@ const VideoCall = ({
               requires_attention: true
             });
           
-          // Send a real-time message through the signaling channel
           supabase.channel(channelName).send({
             type: 'broadcast',
             event: 'call-notification',
@@ -110,19 +104,22 @@ const VideoCall = ({
             }
           });
           
-          // Also notify the general consultant call channel
           if (joinAs === 'user' && interactionData?.metadata) {
-            // Fix: Safely extract consultant_id from metadata which might be a string or object
             let consultantId = null;
             
             if (typeof interactionData.metadata === 'object' && interactionData.metadata !== null) {
-              // If metadata is an object, access the property directly
-              consultantId = interactionData.metadata.consultant_id;
+              if (Array.isArray(interactionData.metadata)) {
+                console.warn('Metadata is an array, cannot extract consultant_id directly:', interactionData.metadata);
+              } else {
+                const metadataObj = interactionData.metadata as { [key: string]: any };
+                consultantId = metadataObj.consultant_id;
+              }
             } else if (typeof interactionData.metadata === 'string') {
-              // If metadata is a string, try to parse it as JSON
               try {
                 const parsedMetadata = JSON.parse(interactionData.metadata);
-                consultantId = parsedMetadata.consultant_id;
+                if (typeof parsedMetadata === 'object' && parsedMetadata !== null && !Array.isArray(parsedMetadata)) {
+                  consultantId = parsedMetadata.consultant_id;
+                }
               } catch (e) {
                 console.error('Failed to parse metadata string as JSON:', e);
               }
@@ -134,7 +131,7 @@ const VideoCall = ({
                 event: 'incoming-call',
                 payload: {
                   interactionId: interactionId,
-                  consultantId: String(consultantId), // Ensure it's a string
+                  consultantId: String(consultantId),
                   callerName: 'Anonymous user',
                   description: interactionData.description || 'Video consultation'
                 }
@@ -176,7 +173,6 @@ const VideoCall = ({
         />
       )}
       
-      {/* Controls */}
       <MediaControls
         localStream={localStream}
         isAudioOnly={isAudioOnly}
