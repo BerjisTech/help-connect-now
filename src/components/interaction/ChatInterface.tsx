@@ -184,7 +184,27 @@ const ChatInterface = ({
       
       <CardContent className="flex-1 overflow-hidden">
         {showVideoCall ? (
-          <TabsContent value="video" className="h-[400px] mt-0">
+          <Tabs value={activeTab} className="hidden">
+            <TabsContent value="video" className="h-[400px] mt-0">
+              <VideoCall
+                interactionId={interactionId}
+                participantId={participantId}
+                isInitiator={joinAs === 'user'}
+                onEndCall={onEndVideoCall}
+                joinAs={joinAs}
+              />
+            </TabsContent>
+            <TabsContent value="chat" className="h-[400px] overflow-y-auto mt-0">
+              {renderChatContent()}
+            </TabsContent>
+          </Tabs>
+        ) : (
+          renderChatContent()
+        )}
+        
+        {/* Show or hide content based on active tab */}
+        {showVideoCall && activeTab === "video" && (
+          <div className="h-[400px]">
             <VideoCall
               interactionId={interactionId}
               participantId={participantId}
@@ -192,15 +212,13 @@ const ChatInterface = ({
               onEndCall={onEndVideoCall}
               joinAs={joinAs}
             />
-          </TabsContent>
-        ) : (
-          renderChatContent()
+          </div>
         )}
         
-        {showVideoCall && (
-          <TabsContent value="chat" className="h-[400px] overflow-y-auto mt-0">
+        {showVideoCall && activeTab === "chat" && (
+          <div className="h-[400px] overflow-y-auto">
             {renderChatContent()}
-          </TabsContent>
+          </div>
         )}
       </CardContent>
       
