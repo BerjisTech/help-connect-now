@@ -15,6 +15,7 @@ import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import Interaction from "./pages/Interaction";
 import ConsultantProfile from "./pages/ConsultantProfile";
+import Review from "./pages/Review";
 import NotFound from "./pages/NotFound";
 
 const App = () => {
@@ -39,6 +40,7 @@ const App = () => {
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/interaction" element={<Interaction />} />
                 <Route path="/consultant/:id" element={<ConsultantProfile />} />
+                <Route path="/review" element={<Review />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

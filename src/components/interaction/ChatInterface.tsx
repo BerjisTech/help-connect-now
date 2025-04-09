@@ -101,6 +101,9 @@ const ChatInterface = ({
     try {
       await onSendMessage(newMessage);
       setNewMessage('');
+    } catch (error) {
+      console.error("Error sending message:", error);
+      toast.error("Failed to send message. Please try again.");
     } finally {
       setSendingMessage(false);
     }
@@ -184,7 +187,7 @@ const ChatInterface = ({
       
       <CardContent className="flex-1 overflow-hidden">
         {showVideoCall ? (
-          <Tabs value={activeTab}>
+          <Tabs value={activeTab} className="h-full">
             <TabsContent value="video" className="h-[400px] mt-0">
               <VideoCall
                 interactionId={interactionId}

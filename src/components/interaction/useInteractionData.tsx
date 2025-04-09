@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,6 +16,19 @@ export const useInteractionData = (interactionId: string | null) => {
   const [endCallConfirmOpen, setEndCallConfirmOpen] = useState(false);
   const [timerRunning, setTimerRunning] = useState(false);
   const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
+  const [anonymousId, setAnonymousId] = useState<string | null>(null);
+
+  // Initialize anonymous ID on mount
+  useEffect(() => {
+    const storedId = localStorage.getItem('anonymousId');
+    if (storedId) {
+      setAnonymousId(storedId);
+    } else {
+      const newId = Math.random().toString(36).substring(2, 15);
+      localStorage.setItem('anonymousId', newId);
+      setAnonymousId(newId);
+    }
+  }, []);
 
   // Fetch interaction data
   useEffect(() => {
@@ -146,6 +160,34 @@ export const useInteractionData = (interactionId: string | null) => {
     };
   }, [interactionId, navigate]);
 
+  // Initialize or update anonymous ID in interaction
+  useEffect(() => {
+    const updateAnonymousId = async () => {
+      if (!interaction || !anonymousId || interaction.anonymous_seeker_id === anonymousId) {
+        return;
+      }
+      
+      // Only update if there's no anonymous ID already set
+      if (!interaction.anonymous_seeker_id) {
+        try {
+          await supabase
+            .from('interactions')
+            .update({ anonymous_seeker_id: anonymousId })
+            .eq('id', interaction.id);
+            
+          // Update local state
+          setInteraction(prev => prev ? { ...prev, anonymous_seeker_id: anonymousId } : null);
+        } catch (error) {
+          console.error('Error updating anonymous ID:', error);
+        }
+      }
+    };
+    
+    if (joinAs === 'user') {
+      updateAnonymousId();
+    }
+  }, [interaction, anonymousId, joinAs]);
+
   // Start video call
   const startVideoCall = useCallback(async (role: 'user' | 'consultant') => {
     if (!interaction) return;
@@ -227,21 +269,19 @@ export const useInteractionData = (interactionId: string | null) => {
       // Set sender ID based on authentication status
       if (user) {
         messageData.sender_id = user.id;
-      } else if (interaction.anonymous_seeker_id) {
-        messageData.anonymous_sender_id = interaction.anonymous_seeker_id;
-      } else {
-        // If no user and no anonymous ID, create a new anonymous ID
-        const anonymousId = localStorage.getItem('anonymousId') || 
-                           Math.random().toString(36).substring(2, 15);
+      } else if (anonymousId) {
+        // Use the anonymousId from state
         messageData.anonymous_sender_id = anonymousId;
-        localStorage.setItem('anonymousId', anonymousId);
         
-        // Update interaction with anonymous ID if needed
+        // Ensure interaction has anonymous ID
         if (!interaction.anonymous_seeker_id) {
           await supabase
             .from('interactions')
             .update({ anonymous_seeker_id: anonymousId })
             .eq('id', interaction.id);
+            
+          // Update local state
+          setInteraction(prev => prev ? { ...prev, anonymous_seeker_id: anonymousId } : null);
         }
       }
       
@@ -250,13 +290,16 @@ export const useInteractionData = (interactionId: string | null) => {
         .from('messages')
         .insert(messageData);
         
-      if (error) throw error;
+      if (error) {
+        console.error('Error sending message:', error);
+        throw error;
+      }
       
     } catch (error) {
       console.error('Error sending message:', error);
-      toast.error('Failed to send message');
+      throw error;
     }
-  }, [interaction]);
+  }, [interaction, anonymousId]);
 
   return {
     interaction,

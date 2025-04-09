@@ -130,16 +130,21 @@ const VideoCall = ({
             throw interactionError;
           }
           
-          await supabase
-            .from('messages')
-            .insert({
-              interaction_id: interactionId,
-              content: `A video call has been initiated.`,
-              sender_id: joinAs === 'consultant' ? participantId : null,
-              anonymous_sender_id: joinAs === 'user' ? 'system' : null,
-              is_system_message: true,
-              requires_attention: true
-            });
+          // Try to insert system message, but don't fail if RLS blocks it
+          try {
+            await supabase
+              .from('messages')
+              .insert({
+                interaction_id: interactionId,
+                content: `A video call has been initiated.`,
+                sender_id: joinAs === 'consultant' ? participantId : null,
+                anonymous_sender_id: joinAs === 'user' ? 'system' : null,
+                is_system_message: true,
+                requires_attention: true
+              });
+          } catch (messageError) {
+            console.warn('Could not insert system message, continuing anyway:', messageError);
+          }
           
           supabase.channel(channelName).send({
             type: 'broadcast',
