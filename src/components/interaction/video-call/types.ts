@@ -24,6 +24,7 @@ export interface VideoDisplayProps {
   localVideoRef: React.RefObject<HTMLVideoElement>;
   remoteVideoRef: React.RefObject<HTMLVideoElement>;
   isConnecting: boolean;
+  isConnected: boolean;
   isAudioOnly: boolean;
   isVideoEnabled: boolean;
   isAudioEnabled: boolean;

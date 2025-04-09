@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useWebRTC } from './useWebRTC';
 import VideoDisplay from './VideoDisplay';
@@ -14,7 +15,6 @@ const VideoCall = ({
   onEndCall,
   joinAs
 }: VideoCallProps) => {
-  const [endCallConfirmOpen, setEndCallConfirmOpen] = useState(false);
   const [notificationSent, setNotificationSent] = useState(false);
   
   // Determine channel name based on interactionId only to ensure both parties use the same channel
@@ -24,6 +24,7 @@ const VideoCall = ({
     localStream,
     remoteStream,
     isConnecting,
+    isConnected,
     isVideoEnabled,
     isAudioEnabled,
     hasMediaError,
@@ -35,7 +36,7 @@ const VideoCall = ({
     tryAudioOnly,
     endCall,
     retryConnection
-  } = useWebRTC(interactionId, isInitiator, onEndCall, channelName);
+  } = useWebRTC(interactionId, joinAs === 'user', onEndCall, channelName);
 
   useEffect(() => {
     if (!interactionId) return;
@@ -49,7 +50,7 @@ const VideoCall = ({
     channel
       .on('broadcast', { event: 'call-accepted' }, ({ payload }) => {
         console.log('Call accepted:', payload);
-        toast.success('Consultant has joined the call');
+        toast.success('Call connected - other participant has joined');
       })
       .on('broadcast', { event: 'call-rejected' }, ({ payload }) => {
         console.log('Call rejected:', payload);
@@ -64,10 +65,24 @@ const VideoCall = ({
       })
       .subscribe();
 
+    // Send acceptance notification when joining as a consultant
+    if (joinAs === 'consultant' && !notificationSent) {
+      setTimeout(() => {
+        channel.send({
+          type: 'broadcast',
+          event: 'call-accepted',
+          payload: { 
+            message: 'Consultant has joined the call'
+          }
+        });
+        setNotificationSent(true);
+      }, 1000);
+    }
+
     return () => {
       channel.unsubscribe();
     };
-  }, [interactionId, onEndCall, channelName]);
+  }, [interactionId, onEndCall, channelName, joinAs, notificationSent]);
 
   useEffect(() => {
     const sendCallNotification = async () => {
@@ -149,7 +164,9 @@ const VideoCall = ({
       }
     };
 
-    sendCallNotification();
+    if (joinAs === 'user') {
+      sendCallNotification();
+    }
   }, [interactionId, participantId, joinAs, notificationSent, channelName]);
 
   return (
@@ -167,6 +184,7 @@ const VideoCall = ({
           localVideoRef={localVideoRef}
           remoteVideoRef={remoteVideoRef}
           isConnecting={isConnecting}
+          isConnected={isConnected}
           isAudioOnly={isAudioOnly}
           isVideoEnabled={isVideoEnabled}
           isAudioEnabled={isAudioEnabled}

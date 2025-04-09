@@ -8,6 +8,7 @@ const VideoDisplay = ({
   localVideoRef,
   remoteVideoRef,
   isConnecting,
+  isConnected,
   isAudioOnly,
   isVideoEnabled,
   isAudioEnabled
@@ -25,7 +26,7 @@ const VideoDisplay = ({
       ) : (
         <div className="w-full h-full flex items-center justify-center bg-gray-900">
           <p className="text-white text-center">
-            {isConnecting ? 'Connecting...' : 'Waiting for participant to join...'}
+            {isConnecting ? 'Connecting...' : isConnected ? 'Connected, waiting for video...' : 'Waiting for participant to join...'}
           </p>
         </div>
       )}

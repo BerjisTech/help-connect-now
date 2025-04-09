@@ -48,6 +48,29 @@ const InteractionDetails = ({
     return urlParams.get('view') === 'consultant';
   };
 
+  const consultantView = isConsultantView();
+  
+  // Determine user labels based on the view
+  const getParticipantInfo = () => {
+    if (consultantView) {
+      return {
+        title: "User",
+        name: "Anonymous User",
+        role: "Seeking consultation",
+        avatar: null
+      };
+    } else {
+      return {
+        title: "Consultant",
+        name: consultant?.display_name || "Consultant",
+        role: consultant?.industry || "Specialist",
+        avatar: consultant?.avatar_url
+      };
+    }
+  };
+  
+  const participantInfo = getParticipantInfo();
+
   return (
     <Card className="h-full dark:bg-indigo-950 dark:text-accent">
       <CardHeader>
@@ -66,46 +89,40 @@ const InteractionDetails = ({
         </div>
       </CardHeader>
       <CardContent>
-        {consultant ? (
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <Avatar className="h-12 w-12">
-                <AvatarImage src={consultant.avatar_url || ''} />
-                <AvatarFallback>
-                  {consultant.display_name?.charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <h3 className="font-medium">{consultant.display_name}</h3>
-                <p className="text-sm text-muted-foreground">{consultant.industry || 'Consultant'}</p>
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <Avatar className="h-12 w-12">
+              <AvatarImage src={participantInfo.avatar || ''} />
+              <AvatarFallback>
+                {participantInfo.name?.charAt(0).toUpperCase() || '?'}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <h3 className="font-medium">{participantInfo.name}</h3>
+              <p className="text-sm text-muted-foreground">{participantInfo.role}</p>
+            </div>
+          </div>
+          
+          {consultant && !consultantView && consultant.bio && (
+            <div>
+              <h4 className="text-sm font-medium mb-1">About</h4>
+              <p className="text-sm text-muted-foreground">{consultant.bio}</p>
+            </div>
+          )}
+          
+          {consultant && !consultantView && consultant.expertise && consultant.expertise.length > 0 && (
+            <div>
+              <h4 className="text-sm font-medium mb-1">Expertise</h4>
+              <div className="flex flex-wrap gap-1">
+                {consultant.expertise.map((skill, index) => (
+                  <span key={index} className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded-full">
+                    {skill}
+                  </span>
+                ))}
               </div>
             </div>
-            
-            {consultant.bio && (
-              <div>
-                <h4 className="text-sm font-medium mb-1">About</h4>
-                <p className="text-sm text-muted-foreground">{consultant.bio}</p>
-              </div>
-            )}
-            
-            {consultant.expertise && consultant.expertise.length > 0 && (
-              <div>
-                <h4 className="text-sm font-medium mb-1">Expertise</h4>
-                <div className="flex flex-wrap gap-1">
-                  {consultant.expertise.map((skill, index) => (
-                    <span key={index} className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded-full">
-                      {skill}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="text-center py-4">
-            <p className="text-muted-foreground">Consultant information not available</p>
-          </div>
-        )}
+          )}
+        </div>
         
         <div className="mt-4 pt-4 border-t">
           <h4 className="text-sm font-medium mb-1">Consultation Topic</h4>
@@ -130,7 +147,7 @@ const InteractionDetails = ({
             className="w-full dark:bg-indigo-800/50" 
             onClick={startVideoCall}
           >
-            {isConsultantView() ? 'Join Video Call' : 'Start Video Call'}
+            {consultantView ? 'Join Video Call' : 'Start Video Call'}
           </Button>
         )}
         
