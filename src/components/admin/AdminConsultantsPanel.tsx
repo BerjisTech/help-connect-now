@@ -99,20 +99,30 @@ const AdminConsultantsPanel = () => {
     if (!consultantToDelete) return;
     
     try {
+      // Fix: Adding console.log to debug deletion
+      console.log('Deleting consultant with ID:', consultantToDelete.id);
+      
       const { error } = await supabase
         .from('consultants')
         .delete()
         .eq('id', consultantToDelete.id);
         
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase delete error:', error);
+        throw error;
+      }
       
       toast({
         title: 'Consultant Deleted',
         description: `${consultantToDelete.display_name} has been removed from consultants.`
       });
       
-      refetch();
+      // Fix: Explicitly clear the delete dialog state and refresh data
+      setConsultantToDelete(null);
       setDeleteDialogOpen(false);
+      
+      // Fix: Force a refetch after deletion
+      await refetch();
     } catch (error) {
       console.error('Error deleting consultant:', error);
       toast({
