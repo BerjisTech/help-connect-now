@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useWebRTC } from './useWebRTC';
+import { useWebRTC } from '../useWebRTC';
 import VideoDisplay from './VideoDisplay';
 import MediaControls from './MediaControls';
 import ErrorDisplay from './ErrorDisplay';
