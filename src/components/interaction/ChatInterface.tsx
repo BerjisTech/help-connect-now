@@ -58,15 +58,23 @@ const ChatInterface = ({
         console.log('Received call notification:', payload);
         if (payload.interactionId === interactionId) {
           setHasIncomingCall(true);
-          toast('Incoming video call', {
-            description: 'Someone is trying to reach you via video call',
-            action: {
-              label: 'Join',
-              onClick: () => startVideoCall(joinAs)
-            },
-            duration: 10000,
-          });
+          if (joinAs === 'consultant') {
+            toast('Incoming video call', {
+              description: 'Someone is trying to reach you via video call',
+              action: {
+                label: 'Join',
+                onClick: () => startVideoCall(joinAs)
+              },
+              duration: 10000,
+            });
+          }
         }
+      })
+      .on('broadcast', { event: 'call-rejected' }, () => {
+        setHasIncomingCall(false);
+      })
+      .on('broadcast', { event: 'call-accepted' }, () => {
+        setHasIncomingCall(false);
       })
       .subscribe((status) => {
         console.log(`Call notification subscription status: ${status}`);

@@ -38,11 +38,56 @@ const VideoCall = ({
     retryConnection
   } = useWebRTC(interactionId, isInitiator, onEndCall, channelName);
 
+  // Listen for call acceptance/rejection
+  useEffect(() => {
+    if (!interactionId) return;
+    
+    const channel = supabase.channel(channelName, {
+      config: {
+        broadcast: { self: false }
+      }
+    });
+
+    channel
+      .on('broadcast', { event: 'call-accepted' }, ({ payload }) => {
+        console.log('Call accepted:', payload);
+        toast.success('Consultant has joined the call');
+      })
+      .on('broadcast', { event: 'call-rejected' }, ({ payload }) => {
+        console.log('Call rejected:', payload);
+        toast.error('Call rejected', {
+          description: 'The consultant is unavailable at the moment.'
+        });
+        if (onEndCall) {
+          setTimeout(() => {
+            onEndCall();
+          }, 3000); // Give time for toast to be seen
+        }
+      })
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [interactionId, onEndCall, channelName]);
+
   // Send notification to the other participant when initiating a call
   useEffect(() => {
     const sendCallNotification = async () => {
       if (!notificationSent && interactionId) {
         try {
+          // Get interaction details to send to consultant
+          const { data: interactionData, error: interactionError } = await supabase
+            .from('interactions')
+            .select('*, metadata')
+            .eq('id', interactionId)
+            .single();
+            
+          if (interactionError) {
+            console.error('Error fetching interaction data:', interactionError);
+            throw interactionError;
+          }
+          
           // Add a notification to the database
           await supabase
             .from('messages')
@@ -64,6 +109,20 @@ const VideoCall = ({
               interactionId: interactionId
             }
           });
+          
+          // Also notify the general consultant call channel
+          if (joinAs === 'user' && interactionData?.metadata?.consultant_id) {
+            supabase.channel('general-calls').send({
+              type: 'broadcast',
+              event: 'incoming-call',
+              payload: {
+                interactionId: interactionId,
+                consultantId: interactionData.metadata.consultant_id,
+                callerName: 'Anonymous user',
+                description: interactionData.description || 'Video consultation'
+              }
+            });
+          }
           
           console.log('Call notification sent');
           setNotificationSent(true);
