@@ -6,7 +6,7 @@ import { InteractionData } from '../types';
 interface UseMessageActionsProps {
   interaction: InteractionData | null;
   anonymousId: string | null;
-  setInteraction: (interaction: InteractionData | null) => void;
+  setInteraction: React.Dispatch<React.SetStateAction<InteractionData | null>>;
 }
 
 export const useMessageActions = ({

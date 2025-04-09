@@ -5,8 +5,8 @@ import { InteractionData, MessageData } from '../types';
 
 interface UseInteractionSubscriptionsProps {
   interactionId: string | null;
-  setMessages: (messages: MessageData[]) => void;
-  setInteraction: (interaction: InteractionData | null) => void;
+  setMessages: React.Dispatch<React.SetStateAction<MessageData[]>>;
+  setInteraction: React.Dispatch<React.SetStateAction<InteractionData | null>>;
   setShowVideoCall: (show: boolean) => void;
   setTimerRunning: (running: boolean) => void;
   setSessionStartTime: (time: Date | null) => void;
