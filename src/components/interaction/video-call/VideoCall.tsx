@@ -111,17 +111,37 @@ const VideoCall = ({
           });
           
           // Also notify the general consultant call channel
-          if (joinAs === 'user' && interactionData?.metadata?.consultant_id) {
-            supabase.channel('general-calls').send({
-              type: 'broadcast',
-              event: 'incoming-call',
-              payload: {
-                interactionId: interactionId,
-                consultantId: interactionData.metadata.consultant_id,
-                callerName: 'Anonymous user',
-                description: interactionData.description || 'Video consultation'
+          if (joinAs === 'user' && interactionData?.metadata) {
+            // Fix: Safely extract consultant_id from metadata which might be a string or object
+            let consultantId = null;
+            
+            if (typeof interactionData.metadata === 'object' && interactionData.metadata !== null) {
+              // If metadata is an object, access the property directly
+              consultantId = interactionData.metadata.consultant_id;
+            } else if (typeof interactionData.metadata === 'string') {
+              // If metadata is a string, try to parse it as JSON
+              try {
+                const parsedMetadata = JSON.parse(interactionData.metadata);
+                consultantId = parsedMetadata.consultant_id;
+              } catch (e) {
+                console.error('Failed to parse metadata string as JSON:', e);
               }
-            });
+            }
+            
+            if (consultantId) {
+              supabase.channel('general-calls').send({
+                type: 'broadcast',
+                event: 'incoming-call',
+                payload: {
+                  interactionId: interactionId,
+                  consultantId: String(consultantId), // Ensure it's a string
+                  callerName: 'Anonymous user',
+                  description: interactionData.description || 'Video consultation'
+                }
+              });
+            } else {
+              console.warn('No consultant_id found in metadata:', interactionData.metadata);
+            }
           }
           
           console.log('Call notification sent');
