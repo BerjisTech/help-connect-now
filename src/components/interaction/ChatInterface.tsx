@@ -14,7 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import VideoCall from './video-call/VideoCall';
 import { MessageData } from './types';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 interface ChatInterfaceProps {
   showVideoCall: boolean;
@@ -184,7 +184,7 @@ const ChatInterface = ({
       
       <CardContent className="flex-1 overflow-hidden">
         {showVideoCall ? (
-          <Tabs value={activeTab} className="hidden">
+          <Tabs value={activeTab}>
             <TabsContent value="video" className="h-[400px] mt-0">
               <VideoCall
                 interactionId={interactionId}
@@ -200,25 +200,6 @@ const ChatInterface = ({
           </Tabs>
         ) : (
           renderChatContent()
-        )}
-        
-        {/* Show or hide content based on active tab */}
-        {showVideoCall && activeTab === "video" && (
-          <div className="h-[400px]">
-            <VideoCall
-              interactionId={interactionId}
-              participantId={participantId}
-              isInitiator={joinAs === 'user'}
-              onEndCall={onEndVideoCall}
-              joinAs={joinAs}
-            />
-          </div>
-        )}
-        
-        {showVideoCall && activeTab === "chat" && (
-          <div className="h-[400px] overflow-y-auto">
-            {renderChatContent()}
-          </div>
         )}
       </CardContent>
       

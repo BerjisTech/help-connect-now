@@ -1,6 +1,6 @@
 
+import { Mic, MicOff, Video, VideoOff, PhoneOff, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Mic, MicOff, PhoneOff, Video, VideoOff } from 'lucide-react';
 import { MediaControlsProps } from './types';
 
 const MediaControls = ({
@@ -11,41 +11,52 @@ const MediaControls = ({
   hasMediaError,
   onToggleVideo,
   onToggleAudio,
-  onEndCall
+  onEndCall,
+  onRetryConnection
 }: MediaControlsProps) => {
   return (
-    <div className="flex justify-center items-center gap-4 mt-4">
+    <div className="flex justify-center gap-4 py-4">
+      {/* Audio Toggle */}
       <Button
-        variant={isAudioEnabled ? "outline" : "destructive"}
         size="icon"
+        variant={isAudioEnabled ? "outline" : "secondary"}
         onClick={onToggleAudio}
-        title={isAudioEnabled ? "Mute microphone" : "Unmute microphone"}
-        disabled={hasMediaError || !localStream}
-        className="bg-white/10 hover:bg-white/20 dark:bg-indigo-950 dark:border-indigo-950 dark:hover:bg-indigo-800"
+        disabled={!localStream || hasMediaError}
+        title={isAudioEnabled ? "Mute Microphone" : "Unmute Microphone"}
       >
         {isAudioEnabled ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
       </Button>
       
+      {/* Video Toggle */}
       <Button
-        variant="destructive"
         size="icon"
+        variant={isVideoEnabled ? "outline" : "secondary"}
+        onClick={onToggleVideo}
+        disabled={!localStream || hasMediaError || isAudioOnly}
+        title={isVideoEnabled ? "Turn Off Camera" : "Turn On Camera"}
+      >
+        {isVideoEnabled ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
+      </Button>
+      
+      {/* Retry Connection Button */}
+      <Button
+        size="icon"
+        variant="outline"
+        onClick={onRetryConnection}
+        title="Retry Connection"
+      >
+        <RefreshCw className="h-5 w-5" />
+      </Button>
+      
+      {/* End Call */}
+      <Button
+        size="icon"
+        variant="destructive"
         onClick={onEndCall}
-        title="End call"
+        title="End Call"
       >
         <PhoneOff className="h-5 w-5" />
       </Button>
-      
-      {!isAudioOnly && (
-        <Button
-          variant={isVideoEnabled ? "outline" : "destructive"}
-          size="icon"
-          onClick={onToggleVideo}
-          title={isVideoEnabled ? "Turn off camera" : "Turn on camera"}
-          disabled={hasMediaError || !localStream}
-        >
-          {isVideoEnabled ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
-        </Button>
-      )}
     </div>
   );
 };

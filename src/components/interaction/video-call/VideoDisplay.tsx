@@ -1,5 +1,5 @@
 
-import { VideoOff, Mic, MicOff } from 'lucide-react';
+import { Video, PhoneOff, Loader2 } from 'lucide-react';
 import { VideoDisplayProps } from './types';
 
 const VideoDisplay = ({
@@ -11,54 +11,64 @@ const VideoDisplay = ({
   isConnected,
   isAudioOnly,
   isVideoEnabled,
-  isAudioEnabled
+  isAudioEnabled,
+  connectionState
 }: VideoDisplayProps) => {
   return (
-    <div className="relative flex-1 bg-black rounded-lg overflow-hidden">
-      {/* Remote video (large) */}
-      {remoteStream ? (
+    <div className="relative aspect-video bg-black flex-1 rounded-lg overflow-hidden flex items-center justify-center">
+      {/* Remote Video */}
+      <video
+        ref={remoteVideoRef}
+        autoPlay
+        playsInline
+        className={`absolute inset-0 w-full h-full object-cover ${
+          !remoteStream || !isConnected ? 'hidden' : ''
+        }`}
+      />
+      
+      {/* Local Video (in picture-in-picture) */}
+      <div className={`absolute bottom-4 right-4 w-1/4 aspect-video bg-gray-900 rounded-lg overflow-hidden border-2 border-gray-700 shadow-lg ${
+        (!localStream || !isVideoEnabled || isAudioOnly) ? 'flex items-center justify-center' : ''
+      }`}>
         <video
-          ref={remoteVideoRef}
+          ref={localVideoRef}
           autoPlay
           playsInline
-          className="w-full h-full object-cover"
+          muted
+          className={`w-full h-full object-cover ${
+            !localStream || !isVideoEnabled || isAudioOnly ? 'hidden' : ''
+          }`}
         />
-      ) : (
-        <div className="w-full h-full flex items-center justify-center bg-gray-900">
-          <p className="text-white text-center">
-            {isConnecting ? 'Connecting...' : isConnected ? 'Connected, waiting for video...' : 'Waiting for participant to join...'}
-          </p>
-        </div>
-      )}
-      
-      {/* Local video (small overlay) */}
-      <div className="absolute bottom-4 right-4 w-1/4 max-w-[160px] h-auto aspect-video rounded-lg overflow-hidden border-2 border-white/20 shadow-lg">
-        {isAudioOnly ? (
-          <div className="h-full w-full bg-gray-800 dark:bg-indigo-950 flex items-center justify-center">
-            <Mic className="w-8 h-8 dark:bg-indigo-950 text-white opacity-50" />
-          </div>
-        ) : (
-          <video
-            ref={localVideoRef}
-            autoPlay
-            playsInline
-            muted
-            className="w-full h-full object-cover dark:bg-indigo-950"
-          />
-        )}
-        
-        {/* Muted indicators for local video */}
-        {!isVideoEnabled && !isAudioOnly && (
-          <div className="absolute inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center">
-            <VideoOff className="w-6 h-6 dark:bg-indigo-950 text-white" />
-          </div>
-        )}
-        {!isAudioEnabled && (
-          <div className="absolute bottom-1 left-1">
-            <MicOff className="w-4 h-4 text-white" />
+        {localStream && (!isVideoEnabled || isAudioOnly) && (
+          <div className="text-gray-400 flex items-center justify-center h-full">
+            <Video className="w-6 h-6" />
           </div>
         )}
       </div>
+      
+      {/* Connecting State */}
+      {isConnecting && !isConnected && (
+        <div className="flex flex-col items-center justify-center text-white space-y-4">
+          <Loader2 className="w-12 h-12 animate-spin" />
+          <p className="text-lg font-medium">Connecting to call...</p>
+          <p className="text-sm text-gray-400">This may take a moment</p>
+          {connectionState && (
+            <p className="text-xs text-gray-500">Connection state: {connectionState}</p>
+          )}
+        </div>
+      )}
+      
+      {/* Waiting for Remote Stream */}
+      {!isConnecting && !remoteStream && !isConnected && (
+        <div className="flex flex-col items-center justify-center text-white space-y-4">
+          <PhoneOff className="w-12 h-12" />
+          <p className="text-lg font-medium">Waiting for participant to join...</p>
+          <p className="text-sm text-gray-400">They'll appear here when connected</p>
+          {connectionState && (
+            <p className="text-xs text-gray-500">Connection state: {connectionState}</p>
+          )}
+        </div>
+      )}
     </div>
   );
 };

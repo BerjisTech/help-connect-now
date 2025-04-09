@@ -4,7 +4,13 @@ export interface VideoCallProps {
   participantId?: string;
   isInitiator?: boolean;
   onEndCall?: () => void;
-  joinAs?: 'consultant' | 'user';
+  joinAs: 'consultant' | 'user';
+}
+
+export interface ErrorDisplayProps {
+  onRetryConnection: () => void;
+  onTryAudioOnly: () => void;
+  onEndCall: () => void;
 }
 
 export interface MediaControlsProps {
@@ -16,6 +22,7 @@ export interface MediaControlsProps {
   onToggleVideo: () => void;
   onToggleAudio: () => void;
   onEndCall: () => void;
+  onRetryConnection: () => void;
 }
 
 export interface VideoDisplayProps {
@@ -28,10 +35,5 @@ export interface VideoDisplayProps {
   isAudioOnly: boolean;
   isVideoEnabled: boolean;
   isAudioEnabled: boolean;
-}
-
-export interface ErrorDisplayProps {
-  onRetryConnection: () => void;
-  onTryAudioOnly: () => void;
-  onEndCall: () => void;
+  connectionState?: string;
 }

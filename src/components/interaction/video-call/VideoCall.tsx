@@ -16,6 +16,7 @@ const VideoCall = ({
   joinAs
 }: VideoCallProps) => {
   const [notificationSent, setNotificationSent] = useState(false);
+  const [callJoined, setCallJoined] = useState(false);
   
   // Determine channel name based on interactionId only to ensure both parties use the same channel
   const channelName = `videocall:${interactionId}`;
@@ -35,11 +36,22 @@ const VideoCall = ({
     toggleAudio,
     tryAudioOnly,
     endCall,
-    retryConnection
+    retryConnection,
+    connectionState
   } = useWebRTC(interactionId, joinAs === 'user', onEndCall, channelName);
+
+  // Log connection state for debugging
+  useEffect(() => {
+    console.log(`WebRTC connection state: ${connectionState}`);
+  }, [connectionState]);
 
   useEffect(() => {
     if (!interactionId) return;
+    
+    // Update call joined state when connected
+    if (isConnected) {
+      setCallJoined(true);
+    }
     
     const channel = supabase.channel(channelName, {
       config: {
@@ -51,6 +63,7 @@ const VideoCall = ({
       .on('broadcast', { event: 'call-accepted' }, ({ payload }) => {
         console.log('Call accepted:', payload);
         toast.success('Call connected - other participant has joined');
+        setCallJoined(true);
       })
       .on('broadcast', { event: 'call-rejected' }, ({ payload }) => {
         console.log('Call rejected:', payload);
@@ -62,6 +75,13 @@ const VideoCall = ({
             onEndCall();
           }, 3000); // Give time for toast to be seen
         }
+      })
+      .on('broadcast', { event: 'participant-ready' }, ({ payload }) => {
+        console.log('Participant is ready:', payload);
+        // Force retry connection when participant is ready
+        setTimeout(() => {
+          retryConnection();
+        }, 1000);
       })
       .subscribe();
 
@@ -75,6 +95,17 @@ const VideoCall = ({
             message: 'Consultant has joined the call'
           }
         });
+        
+        // Also send participant-ready to ensure both sides attempt connection
+        channel.send({
+          type: 'broadcast',
+          event: 'participant-ready',
+          payload: { 
+            participantType: 'consultant',
+            timestamp: new Date().toISOString()
+          }
+        });
+        
         setNotificationSent(true);
       }, 1000);
     }
@@ -82,7 +113,7 @@ const VideoCall = ({
     return () => {
       channel.unsubscribe();
     };
-  }, [interactionId, onEndCall, channelName, joinAs, notificationSent]);
+  }, [interactionId, onEndCall, channelName, joinAs, notificationSent, isConnected, retryConnection]);
 
   useEffect(() => {
     const sendCallNotification = async () => {
@@ -119,9 +150,19 @@ const VideoCall = ({
             }
           });
           
-          if (joinAs === 'user' && interactionData?.metadata) {
-            let consultantId = null;
-            
+          // Also send participant-ready to ensure both sides attempt connection
+          supabase.channel(channelName).send({
+            type: 'broadcast',
+            event: 'participant-ready',
+            payload: { 
+              participantType: 'user',
+              timestamp: new Date().toISOString()
+            }
+          });
+          
+          let consultantId = null;
+          
+          if (interactionData?.metadata) {
             if (typeof interactionData.metadata === 'object' && interactionData.metadata !== null) {
               if (Array.isArray(interactionData.metadata)) {
                 console.warn('Metadata is an array, cannot extract consultant_id directly:', interactionData.metadata);
@@ -139,21 +180,21 @@ const VideoCall = ({
                 console.error('Failed to parse metadata string as JSON:', e);
               }
             }
+          }
             
-            if (consultantId) {
-              supabase.channel('general-calls').send({
-                type: 'broadcast',
-                event: 'incoming-call',
-                payload: {
-                  interactionId: interactionId,
-                  consultantId: String(consultantId),
-                  callerName: 'Anonymous user',
-                  description: interactionData.description || 'Video consultation'
-                }
-              });
-            } else {
-              console.warn('No consultant_id found in metadata:', interactionData.metadata);
-            }
+          if (consultantId) {
+            supabase.channel('general-calls').send({
+              type: 'broadcast',
+              event: 'incoming-call',
+              payload: {
+                interactionId: interactionId,
+                consultantId: String(consultantId),
+                callerName: 'Anonymous user',
+                description: interactionData.description || 'Video consultation'
+              }
+            });
+          } else {
+            console.warn('No consultant_id found in metadata:', interactionData.metadata);
           }
           
           console.log('Call notification sent');
@@ -188,6 +229,7 @@ const VideoCall = ({
           isAudioOnly={isAudioOnly}
           isVideoEnabled={isVideoEnabled}
           isAudioEnabled={isAudioEnabled}
+          connectionState={connectionState}
         />
       )}
       
@@ -200,6 +242,7 @@ const VideoCall = ({
         onToggleVideo={toggleVideo}
         onToggleAudio={toggleAudio}
         onEndCall={endCall}
+        onRetryConnection={retryConnection}
       />
     </div>
   );
