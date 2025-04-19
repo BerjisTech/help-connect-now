@@ -20,11 +20,12 @@ const ExpertiseSection: React.FC<ExpertiseSectionProps> = ({
   onRemoveExpertise
 }) => {
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 dark:text-gray-300">
       <Label>Expertise</Label>
       <div className="flex gap-2">
         <Input
           placeholder="Add area of expertise..."
+          className="w-full dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300"
           value={expertiseInput}
           onChange={(e) => setExpertiseInput(e.target.value)}
           onKeyDown={(e) => {

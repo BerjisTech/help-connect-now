@@ -73,7 +73,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           </div>
           
           <div>
-            <CardTitle className="text-xl">
+            <CardTitle className="text-xl dark:text-gray-300">
               {displayName || 'New User'}
             </CardTitle>
             <CardDescription className="flex items-center gap-2">

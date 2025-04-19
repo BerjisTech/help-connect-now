@@ -32,7 +32,7 @@ const ConsultantSection: React.FC<ConsultantSectionProps> = ({
   setAvailability
 }) => {
   return (
-    <div className="pt-4 border-t">
+    <div className="pt-4 border-t dark:text-gray-300">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="font-medium">Register as Consultant</h3>
@@ -54,6 +54,7 @@ const ConsultantSection: React.FC<ConsultantSectionProps> = ({
               min="0"
               step="0.01"
               placeholder="0.00"
+              className='w-full dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300'
               value={hourlyRate}
               onChange={(e) => setHourlyRate(e.target.value)}
             />

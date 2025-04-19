@@ -38,12 +38,13 @@ const ProfileBasicInfo: React.FC<ProfileBasicInfoProps> = ({
 }) => {
   return (
     <>
-      <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid md:grid-cols-2 gap-4 dark:text-gray-300">
         <div className="space-y-2">
           <Label htmlFor="firstName">First Name</Label>
           <Input
             id="firstName"
             value={firstName}
+            className="w-full dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300"
             onChange={(e) => setFirstName(e.target.value)}
           />
         </div>
@@ -53,33 +54,35 @@ const ProfileBasicInfo: React.FC<ProfileBasicInfoProps> = ({
           <Input
             id="lastName"
             value={lastName}
+            className="w-full dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300"
             onChange={(e) => setLastName(e.target.value)}
           />
         </div>
       </div>
       
-      <div className="space-y-2">
+      <div className="space-y-2 dark:text-gray-300">
         <Label htmlFor="displayName">Display Name</Label>
         <Input
           id="displayName"
           value={displayName}
+            className="w-full dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300"
           onChange={(e) => setDisplayName(e.target.value)}
           required
         />
       </div>
       
-      <div className="space-y-2">
+      <div className="space-y-2 dark:text-gray-300">
         <Label htmlFor="bio">Bio</Label>
         <Textarea
           id="bio"
           placeholder="Tell others about yourself..."
-          className="resize-none h-24"
+          className="resize-none h-24 w-full dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300"
           value={bio}
           onChange={(e) => setBio(e.target.value)}
         />
       </div>
       
-      <div className="space-y-2">
+      <div className="space-y-2 dark:text-gray-300">
         <Label htmlFor="industry">Industry</Label>
         <Select value={industry} onValueChange={setIndustry}>
           <SelectTrigger id="industry">
