@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -97,23 +96,53 @@ const AdminConsultationsPanel = () => {
   const { data: interactions, isLoading } = useQuery({
     queryKey: ['adminInteractions'],
     queryFn: async () => {
+      // Modified query to avoid foreign key references issue
       const { data, error } = await supabase
         .from('interactions')
-        .select(`
-          *,
-          helper:profiles!helper_id(display_name, avatar_url),
-          seeker:profiles!seeker_id(display_name, avatar_url)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
       
       if (error) throw error;
       
-      // Handle potentially null related data
-      return (data || []).map(interaction => ({
-        ...interaction,
-        helper: interaction.helper || { display_name: 'N/A', avatar_url: null },
-        seeker: interaction.seeker || { display_name: 'N/A', avatar_url: null }
-      })) as (InteractionData & {
+      // Fetch related profiles separately if helper_id or seeker_id exists
+      const interactionsWithProfiles = await Promise.all((data || []).map(async (interaction) => {
+        let helperProfile = { display_name: 'N/A', avatar_url: null };
+        let seekerProfile = { display_name: 'N/A', avatar_url: null };
+        
+        // Fetch helper profile if exists
+        if (interaction.helper_id) {
+          const { data: helperData } = await supabase
+            .from('profiles')
+            .select('display_name, avatar_url')
+            .eq('id', interaction.helper_id)
+            .single();
+            
+          if (helperData) {
+            helperProfile = helperData;
+          }
+        }
+        
+        // Fetch seeker profile if exists
+        if (interaction.seeker_id) {
+          const { data: seekerData } = await supabase
+            .from('profiles')
+            .select('display_name, avatar_url')
+            .eq('id', interaction.seeker_id)
+            .single();
+            
+          if (seekerData) {
+            seekerProfile = seekerData;
+          }
+        }
+        
+        return {
+          ...interaction,
+          helper: helperProfile,
+          seeker: seekerProfile
+        };
+      }));
+      
+      return interactionsWithProfiles as (InteractionData & {
         helper: { display_name: string; avatar_url: string | null };
         seeker: { display_name: string; avatar_url: string | null };
       })[];
@@ -134,13 +163,15 @@ const AdminConsultationsPanel = () => {
     );
   });
   
-  const getInteractionIcon = (type: 'video' | 'audio' | 'text') => {
+  const getInteractionIcon = (type: string) => {
     switch (type) {
       case 'video':
         return <Video className="h-4 w-4" />;
       case 'audio':
         return <Phone className="h-4 w-4" />;
       case 'text':
+        return <MessageSquare className="h-4 w-4" />;
+      default:
         return <MessageSquare className="h-4 w-4" />;
     }
   };
