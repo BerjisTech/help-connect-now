@@ -1,129 +1,149 @@
 
 import { useState, useEffect, useRef } from 'react';
-import { DailyProvider } from '@daily-co/daily-react';
+import { DailyProvider, useDaily, useParticipant, useVideoTrack, useAudioTrack, useDailyEvent } from '@daily-co/daily-react';
 import { supabase } from '@/integrations/supabase/client';
 import VideoDisplay from './VideoDisplay';
 import MediaControls from './MediaControls';
 import ErrorDisplay from './ErrorDisplay';
 import { VideoCallProps } from './types';
+import { toast } from 'sonner';
 
-const VideoCall = ({ 
-  interactionId, 
-  participantId, 
-  isInitiator = false, 
-  onEndCall,
+// Daily Call component that uses Daily hooks to manage the call
+const DailyCall = ({ 
+  onEndCall, 
+  interactionId,
   joinAs
-}: VideoCallProps) => {
-  const [hasMediaError, setHasMediaError] = useState(false);
-  const [isConnecting, setIsConnecting] = useState(true);
-  const [isConnected, setIsConnected] = useState(false);
+}: {
+  onEndCall?: () => void;
+  interactionId: string;
+  joinAs: 'consultant' | 'user';
+}) => {
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [isAudioOnly, setIsAudioOnly] = useState(false);
-  const [connectionState, setConnectionState] = useState<string>('new');
-  const [dailyUrl, setDailyUrl] = useState<string | null>(null);
-  const [dailyToken, setDailyToken] = useState<string | null>(null);
-  
-  // Add localStream state to pass to MediaControls
-  const [localStream, setLocalStream] = useState<MediaStream | null>(null);
-  const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
-  
-  const callFrameRef = useRef(null);
+  const [hasMediaError, setHasMediaError] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(true);
+  const [connectionState, setConnectionState] = useState<string>('connecting');
+
+  const callObject = useDaily();
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
 
-  useEffect(() => {
-    const setupCall = async () => {
-      try {
-        // Create or join room using our Supabase Edge Function
-        const { data, error } = await supabase.functions.invoke('daily-room', {
-          body: {
-            roomName: `interaction-${interactionId}`,
-            isOwner: joinAs === 'consultant'
-          }
-        });
+  // Get local participant
+  const localParticipant = useParticipant();
+  
+  // Get the remote participant (first one that's not local)
+  const remoteParticipants = useParticipant({ filter: 'remote' });
+  const remoteParticipant = Array.isArray(remoteParticipants) 
+    ? remoteParticipants[0] 
+    : remoteParticipants;
 
-        if (error) throw error;
+  // Get video and audio tracks
+  const localVideo = useVideoTrack(localParticipant?.session_id);
+  const localAudio = useAudioTrack(localParticipant?.session_id);
+  const remoteVideo = useVideoTrack(remoteParticipant?.session_id);
+  const remoteAudio = useAudioTrack(remoteParticipant?.session_id);
 
-        setDailyUrl(data.url);
-        setDailyToken(data.token);
-        setIsConnecting(false);
-      } catch (error) {
-        console.error('Error setting up call:', error);
-        setHasMediaError(true);
-        setIsConnecting(false);
-      }
-    };
-
-    if (interactionId) {
-      setupCall();
-    }
-
-    return () => {
-      // Cleanup if needed
-      if (callFrameRef.current) {
-        callFrameRef.current.destroy();
-      }
-    };
-  }, [interactionId, joinAs]);
-
-  const handleJoinedMeeting = () => {
-    setIsConnected(true);
+  // Set up event handlers
+  useDailyEvent('joined-meeting', () => {
+    setIsConnecting(false);
     setConnectionState('connected');
-  };
+    console.log('Successfully joined the Daily call');
+    toast.success('Connected to call');
+  });
 
-  const handleLeftMeeting = () => {
-    setIsConnected(false);
+  useDailyEvent('left-meeting', () => {
     setConnectionState('disconnected');
+    console.log('Left the Daily call');
     onEndCall?.();
-  };
+  });
 
-  const handleParticipantJoined = (event: any) => {
-    console.log('Participant joined:', event.participant);
-  };
+  useDailyEvent('participant-joined', (event) => {
+    console.log('Remote participant joined:', event.participant);
+    toast.info('Participant joined call');
+  });
 
-  const handleParticipantLeft = (event: any) => {
-    console.log('Participant left:', event.participant);
-  };
+  useDailyEvent('participant-left', (event) => {
+    console.log('Remote participant left:', event.participant);
+    toast.info('Participant left call');
+  });
 
+  useDailyEvent('error', (event) => {
+    console.error('Daily error:', event);
+    setHasMediaError(true);
+    toast.error('Video call error', {
+      description: event.errorMsg || 'There was a problem with the video call'
+    });
+  });
+
+  // Set up local video element
+  useEffect(() => {
+    if (localVideo && localVideo.persistentTrack && localVideoRef.current) {
+      localVideoRef.current.srcObject = new MediaStream([localVideo.persistentTrack]);
+    }
+  }, [localVideo]);
+
+  // Set up remote video element
+  useEffect(() => {
+    if (remoteVideo && remoteVideo.persistentTrack && remoteVideoRef.current) {
+      const stream = new MediaStream();
+      stream.addTrack(remoteVideo.persistentTrack);
+      if (remoteAudio && remoteAudio.persistentTrack) {
+        stream.addTrack(remoteAudio.persistentTrack);
+      }
+      remoteVideoRef.current.srcObject = stream;
+    }
+  }, [remoteVideo, remoteAudio]);
+
+  // Handle video toggle
   const toggleVideo = () => {
-    if (callFrameRef.current) {
-      const isCurrentlyEnabled = callFrameRef.current.localVideo();
-      callFrameRef.current.setLocalVideo(!isCurrentlyEnabled);
-      setIsVideoEnabled(!isCurrentlyEnabled);
+    if (callObject) {
+      callObject.setLocalVideo(!isVideoEnabled);
+      setIsVideoEnabled(!isVideoEnabled);
     }
   };
 
+  // Handle audio toggle
   const toggleAudio = () => {
-    if (callFrameRef.current) {
-      const isCurrentlyEnabled = callFrameRef.current.localAudio();
-      callFrameRef.current.setLocalAudio(!isCurrentlyEnabled);
-      setIsAudioEnabled(!isCurrentlyEnabled);
+    if (callObject) {
+      callObject.setLocalAudio(!isAudioEnabled);
+      setIsAudioEnabled(!isAudioEnabled);
     }
   };
 
+  // Try audio only mode
   const tryAudioOnly = () => {
     setIsAudioOnly(true);
-    if (callFrameRef.current) {
-      callFrameRef.current.setLocalVideo(false);
+    if (callObject) {
+      callObject.setLocalVideo(false);
+      setIsVideoEnabled(false);
     }
-    setIsVideoEnabled(false);
   };
 
+  // End call
   const endCall = () => {
-    if (callFrameRef.current) {
-      callFrameRef.current.leave();
+    if (callObject) {
+      callObject.leave();
     }
     onEndCall?.();
   };
 
-  if (!dailyUrl || !dailyToken) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+  // Determine local and remote media streams from tracks
+  const localStream = localParticipant && (localVideo || localAudio) 
+    ? new MediaStream([
+        ...(localVideo?.persistentTrack ? [localVideo.persistentTrack] : []),
+        ...(localAudio?.persistentTrack ? [localAudio.persistentTrack] : [])
+      ])
+    : null;
+
+  const remoteStream = remoteParticipant && (remoteVideo || remoteAudio)
+    ? new MediaStream([
+        ...(remoteVideo?.persistentTrack ? [remoteVideo.persistentTrack] : []),
+        ...(remoteAudio?.persistentTrack ? [remoteAudio.persistentTrack] : [])
+      ])
+    : null;
+
+  const isConnected = localParticipant && connectionState === 'connected';
 
   return (
     <div className="flex flex-col h-full">
@@ -134,20 +154,18 @@ const VideoCall = ({
           onEndCall={endCall}
         />
       ) : (
-        <DailyProvider url={dailyUrl} token={dailyToken}>
-          <VideoDisplay
-            localStream={localStream}
-            remoteStream={remoteStream}
-            localVideoRef={localVideoRef}
-            remoteVideoRef={remoteVideoRef}
-            isConnecting={isConnecting}
-            isConnected={isConnected}
-            isAudioOnly={isAudioOnly}
-            isVideoEnabled={isVideoEnabled}
-            isAudioEnabled={isAudioEnabled}
-            connectionState={connectionState}
-          />
-        </DailyProvider>
+        <VideoDisplay
+          localStream={localStream}
+          remoteStream={remoteStream}
+          localVideoRef={localVideoRef}
+          remoteVideoRef={remoteVideoRef}
+          isConnecting={isConnecting}
+          isConnected={isConnected}
+          isAudioOnly={isAudioOnly}
+          isVideoEnabled={isVideoEnabled}
+          isAudioEnabled={isAudioEnabled}
+          connectionState={connectionState}
+        />
       )}
       
       <MediaControls
@@ -162,6 +180,93 @@ const VideoCall = ({
         onRetryConnection={() => window.location.reload()}
       />
     </div>
+  );
+};
+
+// Main VideoCall component that creates the Daily context
+const VideoCall = ({ 
+  interactionId, 
+  participantId, 
+  onEndCall,
+  joinAs
+}: VideoCallProps) => {
+  const [dailyUrl, setDailyUrl] = useState<string | null>(null);
+  const [dailyToken, setDailyToken] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    const setupCall = async () => {
+      try {
+        console.log('Setting up Daily call for interaction:', interactionId);
+        setIsLoading(true);
+        
+        // Create or join room using our Supabase Edge Function
+        const { data, error } = await supabase.functions.invoke('daily-room', {
+          body: {
+            roomName: `interaction-${interactionId}`,
+            isOwner: joinAs === 'consultant'
+          }
+        });
+
+        if (error) {
+          console.error('Error from daily-room function:', error);
+          throw error;
+        }
+
+        console.log('Received Daily room data:', data);
+        setDailyUrl(data.url);
+        setDailyToken(data.token);
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error setting up call:', error);
+        setHasError(true);
+        setIsLoading(false);
+        toast.error('Failed to set up video call');
+      }
+    };
+
+    if (interactionId) {
+      setupCall();
+    }
+  }, [interactionId, joinAs]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (hasError || !dailyUrl || !dailyToken) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-gray-500">
+        <div className="mb-4 text-red-500">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <h3 className="text-lg font-medium mb-2">Failed to connect to video call</h3>
+        <p className="text-sm mb-4">There was a problem connecting to the video service.</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <DailyProvider url={dailyUrl} token={dailyToken}>
+      <DailyCall
+        onEndCall={onEndCall}
+        interactionId={interactionId}
+        joinAs={joinAs}
+      />
+    </DailyProvider>
   );
 };
 

@@ -59,7 +59,7 @@ const VideoDisplay = ({
       )}
       
       {/* Waiting for Remote Stream */}
-      {!isConnecting && !remoteStream && !isConnected && (
+      {!isConnecting && !remoteStream && isConnected && (
         <div className="flex flex-col items-center justify-center text-white space-y-4">
           <PhoneOff className="w-12 h-12" />
           <p className="text-lg font-medium">Waiting for participant to join...</p>
