@@ -13,8 +13,23 @@ import { Input } from '@/components/ui/input';
 import { Search, Video, MessageSquare, Phone } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
-// Helper function to format date
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
   return new Intl.DateTimeFormat('en-US', {
@@ -28,18 +43,18 @@ const formatDate = (dateString: string) => {
 
 const AdminConsultationsPanel = () => {
   const [search, setSearch] = useState('');
+  const [pageSize, setPageSize] = useState('10');
+  const [currentPage, setCurrentPage] = useState(1);
   
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['consultationStats'],
     queryFn: async () => {
-      // Get the total number of consultations
       const { count: totalCount, error: totalError } = await supabase
         .from('interactions')
         .select('*', { count: 'exact', head: true });
       
       if (totalError) throw totalError;
       
-      // Get the number of active consultations
       const { count: activeCount, error: activeError } = await supabase
         .from('interactions')
         .select('*', { count: 'exact', head: true })
@@ -47,7 +62,6 @@ const AdminConsultationsPanel = () => {
       
       if (activeError) throw activeError;
       
-      // Get the number of completed consultations
       const { count: completedCount, error: completedError } = await supabase
         .from('interactions')
         .select('*', { count: 'exact', head: true })
@@ -55,7 +69,6 @@ const AdminConsultationsPanel = () => {
       
       if (completedError) throw completedError;
       
-      // Get count by interaction type
       const { data: videoData, error: videoError } = await supabase
         .from('interactions')
         .select('*', { count: 'exact', head: true })
@@ -77,7 +90,6 @@ const AdminConsultationsPanel = () => {
         
       if (textError) throw textError;
       
-      // Calculate type counts
       const typeCounts = {
         video: videoData?.length || 0,
         audio: audioData?.length || 0,
@@ -96,7 +108,6 @@ const AdminConsultationsPanel = () => {
   const { data: interactions, isLoading } = useQuery({
     queryKey: ['adminInteractions'],
     queryFn: async () => {
-      // Modified query to avoid foreign key references issue
       const { data, error } = await supabase
         .from('interactions')
         .select('*')
@@ -104,12 +115,10 @@ const AdminConsultationsPanel = () => {
       
       if (error) throw error;
       
-      // Fetch related profiles separately if helper_id or seeker_id exists
       const interactionsWithProfiles = await Promise.all((data || []).map(async (interaction) => {
         let helperProfile = { display_name: 'N/A', avatar_url: null };
         let seekerProfile = { display_name: 'N/A', avatar_url: null };
         
-        // Fetch helper profile if exists
         if (interaction.helper_id) {
           const { data: helperData } = await supabase
             .from('profiles')
@@ -122,7 +131,6 @@ const AdminConsultationsPanel = () => {
           }
         }
         
-        // Fetch seeker profile if exists
         if (interaction.seeker_id) {
           const { data: seekerData } = await supabase
             .from('profiles')
@@ -162,7 +170,14 @@ const AdminConsultationsPanel = () => {
       description.includes(searchLower)
     );
   });
-  
+
+  const totalItems = filteredInteractions?.length || 0;
+  const totalPages = Math.ceil(totalItems / Number(pageSize));
+  const paginatedInteractions = filteredInteractions?.slice(
+    (currentPage - 1) * Number(pageSize),
+    currentPage * Number(pageSize)
+  );
+
   const getInteractionIcon = (type: string) => {
     switch (type) {
       case 'video':
@@ -199,14 +214,33 @@ const AdminConsultationsPanel = () => {
           <h2 className="text-2xl font-bold">Consultations</h2>
           <p className="text-muted-foreground">Manage all consultations on the platform</p>
         </div>
-        <div className="relative w-full sm:w-auto">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input 
-            placeholder="Search consultations..." 
-            className="pl-8 w-full sm:w-[250px]"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+        <div className="flex gap-2 items-center w-full sm:w-auto">
+          <div className="relative flex-1 sm:flex-none">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input 
+              placeholder="Search consultations..." 
+              className="pl-8 w-full sm:w-[250px]"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setCurrentPage(1);
+              }}
+            />
+          </div>
+          <Select value={pageSize} onValueChange={(value) => {
+            setPageSize(value);
+            setCurrentPage(1);
+          }}>
+            <SelectTrigger className="w-[100px]">
+              <SelectValue placeholder="10 rows" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="5">5 rows</SelectItem>
+              <SelectItem value="10">10 rows</SelectItem>
+              <SelectItem value="50">50 rows</SelectItem>
+              <SelectItem value="100">100 rows</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
       
@@ -307,14 +341,14 @@ const AdminConsultationsPanel = () => {
                   <TableCell><Skeleton className="h-5 w-16" /></TableCell>
                 </TableRow>
               ))
-            ) : filteredInteractions?.length === 0 ? (
+            ) : paginatedInteractions?.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-center py-6">
                   No consultations found
                 </TableCell>
               </TableRow>
             ) : (
-              filteredInteractions?.map(interaction => (
+              paginatedInteractions?.map(interaction => (
                 <TableRow key={interaction.id}>
                   <TableCell className="font-mono text-xs">
                     {interaction.id.substring(0, 8)}...
@@ -340,6 +374,56 @@ const AdminConsultationsPanel = () => {
             )}
           </TableBody>
         </Table>
+        
+        <div className="flex items-center justify-between px-4 py-4 border-t">
+          <div className="text-sm text-muted-foreground">
+            Showing {paginatedInteractions?.length || 0} of {totalItems} results
+          </div>
+          
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious 
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                />
+              </PaginationItem>
+              
+              {pageNumbers.map((pageNum) => {
+                const shouldShow = 
+                  pageNum === 1 || 
+                  pageNum === totalPages || 
+                  Math.abs(pageNum - currentPage) <= 1;
+                
+                if (!shouldShow) {
+                  if (pageNum === 2 || pageNum === totalPages - 1) {
+                    return <PaginationEllipsis key={`ellipsis-${pageNum}`} />;
+                  }
+                  return null;
+                }
+                
+                return (
+                  <PaginationItem key={pageNum}>
+                    <PaginationLink
+                      onClick={() => setCurrentPage(pageNum)}
+                      isActive={currentPage === pageNum}
+                      className="cursor-pointer"
+                    >
+                      {pageNum}
+                    </PaginationLink>
+                  </PaginationItem>
+                );
+              })}
+              
+              <PaginationItem>
+                <PaginationNext 
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
       </div>
     </div>
   );
