@@ -24,7 +24,13 @@ const VideoCall = ({
   const [dailyUrl, setDailyUrl] = useState<string | null>(null);
   const [dailyToken, setDailyToken] = useState<string | null>(null);
   
+  // Add localStream state to pass to MediaControls
+  const [localStream, setLocalStream] = useState<MediaStream | null>(null);
+  const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
+  
   const callFrameRef = useRef(null);
+  const localVideoRef = useRef<HTMLVideoElement>(null);
+  const remoteVideoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     const setupCall = async () => {
@@ -130,22 +136,22 @@ const VideoCall = ({
       ) : (
         <DailyProvider url={dailyUrl} token={dailyToken}>
           <VideoDisplay
-            localVideoRef={callFrameRef}
+            localStream={localStream}
+            remoteStream={remoteStream}
+            localVideoRef={localVideoRef}
+            remoteVideoRef={remoteVideoRef}
             isConnecting={isConnecting}
             isConnected={isConnected}
             isAudioOnly={isAudioOnly}
             isVideoEnabled={isVideoEnabled}
             isAudioEnabled={isAudioEnabled}
             connectionState={connectionState}
-            onJoinedMeeting={handleJoinedMeeting}
-            onLeftMeeting={handleLeftMeeting}
-            onParticipantJoined={handleParticipantJoined}
-            onParticipantLeft={handleParticipantLeft}
           />
         </DailyProvider>
       )}
       
       <MediaControls
+        localStream={localStream}
         isAudioOnly={isAudioOnly}
         isVideoEnabled={isVideoEnabled}
         isAudioEnabled={isAudioEnabled}
