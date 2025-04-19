@@ -178,6 +178,8 @@ const AdminConsultationsPanel = () => {
     currentPage * Number(pageSize)
   );
 
+  const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
+
   const getInteractionIcon = (type: string) => {
     switch (type) {
       case 'video':
