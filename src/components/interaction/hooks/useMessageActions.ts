@@ -48,8 +48,10 @@ export const useMessageActions = ({
         }
       }
       
+      console.log('Sending message with data:', messageData);
+
       // Insert message
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('messages')
         .insert(messageData);
         
@@ -57,6 +59,8 @@ export const useMessageActions = ({
         console.error('Error sending message:', error);
         throw error;
       }
+
+      console.log('Message sent successfully:', data);
       
     } catch (error) {
       console.error('Error sending message:', error);

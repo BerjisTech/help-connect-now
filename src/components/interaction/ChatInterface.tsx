@@ -56,8 +56,9 @@ const ChatInterface = ({
       .on('broadcast', { event: 'call-notification' }, ({ payload }) => {
         console.log('Received call notification:', payload);
         if (payload.interactionId === interactionId) {
-          setHasIncomingCall(true);
+          // Only show notification to the consultant (recipient), not the initiator
           if (joinAs === 'consultant') {
+            setHasIncomingCall(true);
             toast('Incoming video call', {
               description: 'Someone is trying to reach you via video call',
               action: {
