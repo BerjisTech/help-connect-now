@@ -14,12 +14,9 @@ export default defineConfig(({ mode }) => ({
     react({
       // The plugin-react-swc doesn't accept a babel option directly
       // Instead, we need to use the proper configuration format
-      plugins: [
-        // Disable the data-lov-id attributes in production
-        mode === 'production' ? 
-          ['babel-plugin-jsx-remove-data-test-id', { attributes: ['data-lov-id'] }] 
-          : null
-      ].filter(Boolean)
+      plugins: mode === 'production' 
+        ? [['babel-plugin-jsx-remove-data-test-id', { attributes: ['data-lov-id'] }]] 
+        : []
     }),
     mode === 'development' &&
     componentTagger(),
