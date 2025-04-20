@@ -1,5 +1,6 @@
+
 import { useState, useEffect, useRef } from 'react';
-import { DailyProvider, useDaily, useParticipantProperty, useVideoTrack, useAudioTrack, useDailyEvent } from '@daily-co/daily-react';
+import { DailyProvider, useDaily, useVideoTrack, useAudioTrack, useDailyEvent } from '@daily-co/daily-react';
 import { supabase } from '@/integrations/supabase/client';
 import VideoDisplay from './VideoDisplay';
 import MediaControls from './MediaControls';
@@ -28,17 +29,21 @@ const DailyCall = ({
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
 
-  // Get local participant (passing no arguments to get the local participant)
-  const localParticipant = useParticipantProperty('local');
+  // We need to handle the participant differently as the hook API has changed
+  // Access local participant directly from callObject when it's available
+  const localParticipant = callObject ? callObject.participants().local : null;
   
-  // Get the remote participant (first one that's not local)
-  const remoteParticipant = useParticipantProperty('remote');
+  // Get the first remote participant
+  const remoteParticipants = callObject ? 
+    Object.values(callObject.participants()).filter(p => p.session_id !== localParticipant?.session_id) :
+    [];
+  const remoteParticipant = remoteParticipants.length > 0 ? remoteParticipants[0] : null;
 
-  // Get video and audio tracks
-  const localVideo = useVideoTrack(localParticipant?.session_id || '');
-  const localAudio = useAudioTrack(localParticipant?.session_id || '');
-  const remoteVideo = useVideoTrack(remoteParticipant?.session_id || '');
-  const remoteAudio = useAudioTrack(remoteParticipant?.session_id || '');
+  // Get video and audio tracks with proper type checking
+  const localVideo = localParticipant ? useVideoTrack(localParticipant.session_id) : null;
+  const localAudio = localParticipant ? useAudioTrack(localParticipant.session_id) : null;
+  const remoteVideo = remoteParticipant ? useVideoTrack(remoteParticipant.session_id) : null;
+  const remoteAudio = remoteParticipant ? useAudioTrack(remoteParticipant.session_id) : null;
 
   // Set up event handlers
   useDailyEvent('joined-meeting', () => {
