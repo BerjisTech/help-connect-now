@@ -1,6 +1,5 @@
-
 import { useState, useEffect, useRef } from 'react';
-import { DailyProvider, useDaily, useParticipant, useVideoTrack, useAudioTrack, useDailyEvent } from '@daily-co/daily-react';
+import { DailyProvider, useDaily, useParticipantProperty, useVideoTrack, useAudioTrack, useDailyEvent } from '@daily-co/daily-react';
 import { supabase } from '@/integrations/supabase/client';
 import VideoDisplay from './VideoDisplay';
 import MediaControls from './MediaControls';
@@ -29,20 +28,17 @@ const DailyCall = ({
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
 
-  // Get local participant
-  const localParticipant = useParticipant();
+  // Get local participant (passing no arguments to get the local participant)
+  const localParticipant = useParticipantProperty('local');
   
   // Get the remote participant (first one that's not local)
-  const remoteParticipants = useParticipant({ filter: 'remote' });
-  const remoteParticipant = Array.isArray(remoteParticipants) 
-    ? remoteParticipants[0] 
-    : remoteParticipants;
+  const remoteParticipant = useParticipantProperty('remote');
 
   // Get video and audio tracks
-  const localVideo = useVideoTrack(localParticipant?.session_id);
-  const localAudio = useAudioTrack(localParticipant?.session_id);
-  const remoteVideo = useVideoTrack(remoteParticipant?.session_id);
-  const remoteAudio = useAudioTrack(remoteParticipant?.session_id);
+  const localVideo = useVideoTrack(localParticipant?.session_id || '');
+  const localAudio = useAudioTrack(localParticipant?.session_id || '');
+  const remoteVideo = useVideoTrack(remoteParticipant?.session_id || '');
+  const remoteAudio = useAudioTrack(remoteParticipant?.session_id || '');
 
   // Set up event handlers
   useDailyEvent('joined-meeting', () => {
