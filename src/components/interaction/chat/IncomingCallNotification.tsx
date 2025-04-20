@@ -11,14 +11,16 @@ const IncomingCallNotification = ({ hasIncomingCall, onJoinCall }: IncomingCallN
   if (!hasIncomingCall) return null;
   
   return (
-    <Button 
-      size="sm" 
-      onClick={onJoinCall}
-      className="flex items-center gap-2 bg-green-600 hover:bg-green-700 animate-pulse"
-    >
-      <PhoneCall className="h-4 w-4" />
-      Join Incoming Call
-    </Button>
+    <div className="fixed bottom-20 right-4 z-50 md:static md:z-auto">
+      <Button 
+        size="sm" 
+        onClick={onJoinCall}
+        className="flex items-center gap-2 bg-green-600 hover:bg-green-700 animate-pulse shadow-lg md:shadow-none"
+      >
+        <PhoneCall className="h-4 w-4" />
+        Join Incoming Call
+      </Button>
+    </div>
   );
 };
 

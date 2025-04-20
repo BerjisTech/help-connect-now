@@ -195,6 +195,7 @@ const VideoCall = ({
   const [dailyToken, setDailyToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [connectionAttempt, setConnectionAttempt] = useState(0);
 
   useEffect(() => {
     const setupCall = async () => {
@@ -216,21 +217,74 @@ const VideoCall = ({
         }
 
         console.log('Received Daily room data:', data);
+        
+        // Verify the data structure is correct
+        if (!data || !data.url || !data.token) {
+          console.error('Invalid response from daily-room function:', data);
+          throw new Error('Invalid response from video service');
+        }
+        
         setDailyUrl(data.url);
         setDailyToken(data.token);
         setIsLoading(false);
+        
+        // Notify the other participant that you've joined
+        if (joinAs === 'user') {
+          const channelName = `general-calls`;
+          console.log(`Sending call notification through channel ${channelName}`);
+          
+          // Send call notification to all consultants
+          await supabase.channel(channelName).send({
+            type: 'broadcast',
+            event: 'incoming-call',
+            payload: {
+              interactionId: interactionId,
+              callerName: 'User requesting help',
+              description: 'Video consultation request',
+              timestamp: new Date().toISOString()
+            }
+          });
+        }
       } catch (error) {
         console.error('Error setting up call:', error);
         setHasError(true);
         setIsLoading(false);
         toast.error('Failed to set up video call');
+        
+        // If we've retried less than 3 times, try again after a delay
+        if (connectionAttempt < 3) {
+          setTimeout(() => {
+            setConnectionAttempt(prev => prev + 1);
+          }, 3000); // Wait 3 seconds before retrying
+        }
       }
     };
 
     if (interactionId) {
       setupCall();
     }
-  }, [interactionId, joinAs]);
+  }, [interactionId, joinAs, connectionAttempt]);
+
+  // If we're still loading after 20 seconds, show an error
+  useEffect(() => {
+    let timeoutId: number | undefined;
+    
+    if (isLoading) {
+      timeoutId = window.setTimeout(() => {
+        setHasError(true);
+        setIsLoading(false);
+        toast.error('Connection timeout', {
+          description: 'Video call is taking too long to connect'
+        });
+      }, 20000); // 20 second timeout
+    }
+    
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [isLoading]);
 
   if (isLoading) {
     return (

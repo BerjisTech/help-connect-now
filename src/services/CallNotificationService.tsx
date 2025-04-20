@@ -8,6 +8,7 @@ interface CallData {
   interactionId: string;
   callerName: string;
   description?: string;
+  timestamp?: string;
 }
 
 interface CallNotificationContextType {
@@ -40,14 +41,29 @@ export const CallNotificationProvider = ({ children }: CallNotificationProviderP
       try {
         // Get current user
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        if (!user) {
+          console.log('No authenticated user, will not listen for call notifications');
+          return;
+        }
+
+        console.log('Setting up call notification for user:', user.id);
 
         // Subscribe to general call notification channel
-        const generalChannel = supabase.channel('general-calls');
+        const generalChannel = supabase.channel('general-calls', {
+          config: {
+            broadcast: { self: true },
+            presence: {
+              key: user.id,
+            },
+          }
+        });
+        
         generalChannel
           .on('broadcast', { event: 'incoming-call' }, ({ payload }) => {
             console.log('Received general call notification:', payload);
-            if (payload.consultantId === user.id && !subscribedInteractions.includes(payload.interactionId)) {
+            
+            // Record this notification in case it's for this user
+            if (!subscribedInteractions.includes(payload.interactionId)) {
               // Subscribe to the specific interaction channel
               subscribeToInteraction(payload.interactionId);
               
@@ -55,7 +71,8 @@ export const CallNotificationProvider = ({ children }: CallNotificationProviderP
               setIncomingCall({
                 interactionId: payload.interactionId,
                 callerName: payload.callerName || 'Anonymous user',
-                description: payload.description || 'No description provided'
+                description: payload.description || 'No description provided',
+                timestamp: payload.timestamp
               });
               setDrawerOpen(true);
               
@@ -70,7 +87,9 @@ export const CallNotificationProvider = ({ children }: CallNotificationProviderP
               });
             }
           })
-          .subscribe();
+          .subscribe((status) => {
+            console.log('Call notification subscription status:', status);
+          });
 
         return () => {
           generalChannel.unsubscribe();
@@ -90,7 +109,12 @@ export const CallNotificationProvider = ({ children }: CallNotificationProviderP
     const channelName = `videocall:${interactionId}`;
     console.log(`Subscribing to interaction channel: ${channelName}`);
     
-    const channel = supabase.channel(channelName);
+    const channel = supabase.channel(channelName, {
+      config: {
+        broadcast: { self: true }
+      }
+    });
+    
     channel
       .on('broadcast', { event: 'call-notification' }, ({ payload }) => {
         console.log('Received call notification from interaction channel:', payload);
@@ -107,7 +131,9 @@ export const CallNotificationProvider = ({ children }: CallNotificationProviderP
           description: payload.message || 'The call has ended.'
         });
       })
-      .subscribe();
+      .subscribe((status) => {
+        console.log(`Interaction channel ${channelName} subscription status:`, status);
+      });
     
     setSubscribedInteractions(prev => [...prev, interactionId]);
   };
@@ -125,19 +151,20 @@ export const CallNotificationProvider = ({ children }: CallNotificationProviderP
         })
         .eq('id', incomingCall.interactionId);
       
-      // Clear incoming call data and close drawer
-      setDrawerOpen(false);
-      
       // Broadcast acceptance to the caller
       const channelName = `videocall:${incomingCall.interactionId}`;
-      supabase.channel(channelName).send({
+      await supabase.channel(channelName).send({
         type: 'broadcast',
         event: 'call-accepted',
         payload: { 
           message: 'Call accepted', 
-          interactionId: incomingCall.interactionId
+          interactionId: incomingCall.interactionId,
+          timestamp: new Date().toISOString()
         }
       });
+      
+      // Clear incoming call data and close drawer
+      setDrawerOpen(false);
       
     } catch (error) {
       console.error('Error accepting call:', error);
@@ -161,17 +188,19 @@ export const CallNotificationProvider = ({ children }: CallNotificationProviderP
       
       // Broadcast rejection to the caller
       const channelName = `videocall:${incomingCall.interactionId}`;
-      supabase.channel(channelName).send({
+      await supabase.channel(channelName).send({
         type: 'broadcast',
         event: 'call-rejected',
         payload: { 
           message: 'Consultant is unavailable', 
-          interactionId: incomingCall.interactionId
+          interactionId: incomingCall.interactionId,
+          timestamp: new Date().toISOString()
         }
       });
       
-      // Clear incoming call data
+      // Clear incoming call data and close drawer
       setIncomingCall(null);
+      setDrawerOpen(false);
       
     } catch (error) {
       console.error('Error rejecting call:', error);

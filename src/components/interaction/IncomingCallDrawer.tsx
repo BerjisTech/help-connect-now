@@ -14,6 +14,7 @@ interface IncomingCallProps {
     interactionId: string;
     callerName: string;
     description?: string;
+    timestamp?: string;
   } | null;
   onAccept: () => void;
   onReject: () => void;
@@ -27,19 +28,61 @@ const IncomingCallDrawer = ({
   onReject
 }: IncomingCallProps) => {
   const navigate = useNavigate();
+  const [isProcessing, setIsProcessing] = useState(false);
   
   if (!callData) {
     return null;
   }
   
   const handleAccept = () => {
-    onAccept();
-    navigate(`/interaction?id=${callData.interactionId}&view=consultant`);
+    setIsProcessing(true);
+    
+    try {
+      onAccept();
+      
+      // Close the drawer first
+      onOpenChange(false);
+      
+      // Navigate to the interaction page
+      setTimeout(() => {
+        navigate(`/interaction?id=${callData.interactionId}&view=consultant`);
+        setIsProcessing(false);
+      }, 300);
+    } catch (error) {
+      console.error('Error accepting call:', error);
+      setIsProcessing(false);
+      toast.error('Failed to join call');
+    }
   };
   
   const handleReject = () => {
-    onReject();
-    onOpenChange(false);
+    setIsProcessing(true);
+    
+    try {
+      onReject();
+      setIsProcessing(false);
+    } catch (error) {
+      console.error('Error rejecting call:', error);
+      setIsProcessing(false);
+      toast.error('Failed to reject call');
+    }
+  };
+  
+  // Add timeago display for the timestamp
+  const getTimeAgo = (timestamp?: string) => {
+    if (!timestamp) return '';
+    
+    const now = new Date();
+    const callTime = new Date(timestamp);
+    const diffInMinutes = Math.floor((now.getTime() - callTime.getTime()) / (1000 * 60));
+    
+    if (diffInMinutes < 1) return 'just now';
+    if (diffInMinutes === 1) return '1 minute ago';
+    if (diffInMinutes < 60) return `${diffInMinutes} minutes ago`;
+    
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours === 1) return '1 hour ago';
+    return `${diffInHours} hours ago`;
   };
   
   return (
@@ -52,6 +95,9 @@ const IncomingCallDrawer = ({
           </DrawerTitle>
           <DrawerDescription>
             {callData.callerName || 'Someone'} is requesting a video consultation
+            {callData.timestamp && (
+              <span className="block text-xs text-muted-foreground mt-1">{getTimeAgo(callData.timestamp)}</span>
+            )}
           </DrawerDescription>
         </DrawerHeader>
         
@@ -66,6 +112,7 @@ const IncomingCallDrawer = ({
             variant="outline" 
             className="flex-1 sm:flex-none border-red-200 hover:bg-red-50 hover:text-red-600"
             onClick={handleReject}
+            disabled={isProcessing}
           >
             <X className="mr-2 h-4 w-4" />
             Decline
@@ -73,9 +120,10 @@ const IncomingCallDrawer = ({
           <Button 
             className="flex-1 sm:flex-none bg-green-600 hover:bg-green-700 text-white"
             onClick={handleAccept}
+            disabled={isProcessing}
           >
             <Video className="mr-2 h-4 w-4" />
-            Join Call
+            {isProcessing ? 'Connecting...' : 'Join Call'}
           </Button>
         </DrawerFooter>
       </DrawerContent>
