@@ -34,6 +34,7 @@ export const CallNotificationProvider = ({ children }: CallNotificationProviderP
   const [incomingCall, setIncomingCall] = useState<CallData | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [subscribedInteractions, setSubscribedInteractions] = useState<string[]>([]);
+  const [isCallListenerActive, setIsCallListenerActive] = useState(false);
 
   // Set up subscription for call notifications
   useEffect(() => {
@@ -41,95 +42,131 @@ export const CallNotificationProvider = ({ children }: CallNotificationProviderP
       try {
         // Get current user
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          console.log('No authenticated user, will not listen for call notifications');
-          return;
-        }
+        
+        console.log('Setting up call notification listener, authenticated user:', user?.id || 'none');
+        setIsCallListenerActive(true);
 
-        console.log('Setting up call notification for user:', user.id);
-
-        // Subscribe to general call notification channel
-        const generalChannel = supabase.channel('general-calls', {
+        // Subscribe to general call notification channel - regardless of auth status
+        // Since guests can still receive calls
+        const channelName = 'general-calls';
+        console.log(`Subscribing to notification channel: ${channelName}`);
+        
+        const generalChannel = supabase.channel(channelName, {
           config: {
-            broadcast: { self: true },
-            presence: {
-              key: user.id,
-            },
+            broadcast: { self: false }, // Don't receive your own broadcasts
           }
         });
         
         generalChannel
-          .on('broadcast', { event: 'incoming-call' }, ({ payload }) => {
+          .on('broadcast', { event: 'incoming-call' }, (payload) => {
             console.log('Received general call notification:', payload);
             
-            // Record this notification in case it's for this user
-            if (!subscribedInteractions.includes(payload.interactionId)) {
-              // Subscribe to the specific interaction channel
-              subscribeToInteraction(payload.interactionId);
+            if (payload && payload.payload && payload.payload.interactionId) {
+              const callData = payload.payload;
               
-              // Set incoming call data and show drawer
-              setIncomingCall({
-                interactionId: payload.interactionId,
-                callerName: payload.callerName || 'Anonymous user',
-                description: payload.description || 'No description provided',
-                timestamp: payload.timestamp
-              });
-              setDrawerOpen(true);
-              
-              // Also show a toast for better visibility
-              toast('Incoming video call', {
-                description: `${payload.callerName || 'Someone'} is requesting a consultation`,
-                action: {
-                  label: 'Answer',
-                  onClick: () => setDrawerOpen(true)
-                },
-                duration: 10000,
-              });
+              // Record this notification in case it's for this user
+              if (!subscribedInteractions.includes(callData.interactionId)) {
+                console.log('New incoming call detected:', callData);
+                
+                // Subscribe to the specific interaction channel
+                subscribeToInteraction(callData.interactionId);
+                
+                // Set incoming call data and show drawer
+                setIncomingCall({
+                  interactionId: callData.interactionId,
+                  callerName: callData.callerName || 'Anonymous user',
+                  description: callData.description || 'No description provided',
+                  timestamp: callData.timestamp
+                });
+                setDrawerOpen(true);
+                
+                // Also show a toast for better visibility
+                toast('Incoming video call', {
+                  description: `${callData.callerName || 'Someone'} is requesting a consultation`,
+                  action: {
+                    label: 'Answer',
+                    onClick: () => setDrawerOpen(true)
+                  },
+                  duration: 10000,
+                });
+              } else {
+                console.log('Already subscribed to this interaction:', callData.interactionId);
+              }
+            } else {
+              console.error('Received invalid call payload:', payload);
             }
           })
           .subscribe((status) => {
-            console.log('Call notification subscription status:', status);
+            console.log(`Call notification subscription status for ${channelName}:`, status);
           });
 
         return () => {
+          console.log('Unsubscribing from general call channel');
           generalChannel.unsubscribe();
+          setIsCallListenerActive(false);
         };
       } catch (error) {
         console.error('Error setting up call notification listener:', error);
+        setIsCallListenerActive(false);
       }
     };
 
     setupNotificationListener();
-  }, [subscribedInteractions]);
+    
+    // Add a periodic check to ensure the listener is active
+    const intervalId = setInterval(() => {
+      if (!isCallListenerActive) {
+        console.log('Call listener not active, reactivating...');
+        setupNotificationListener();
+      }
+    }, 30000); // Check every 30 seconds
+    
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [subscribedInteractions, isCallListenerActive]);
 
   // Subscribe to a specific interaction channel
   const subscribeToInteraction = (interactionId: string) => {
-    if (subscribedInteractions.includes(interactionId)) return;
+    if (subscribedInteractions.includes(interactionId)) {
+      console.log(`Already subscribed to interaction: ${interactionId}`);
+      return;
+    }
     
     const channelName = `videocall:${interactionId}`;
     console.log(`Subscribing to interaction channel: ${channelName}`);
     
     const channel = supabase.channel(channelName, {
       config: {
-        broadcast: { self: true }
+        broadcast: { self: false } // Don't receive your own broadcasts
       }
     });
     
     channel
-      .on('broadcast', { event: 'call-notification' }, ({ payload }) => {
+      .on('broadcast', { event: 'call-notification' }, (payload) => {
         console.log('Received call notification from interaction channel:', payload);
+        
+        if (payload?.payload) {
+          toast.info(payload.payload.message || 'Call notification received');
+        }
       })
-      .on('broadcast', { event: 'call-rejected' }, ({ payload }) => {
+      .on('broadcast', { event: 'call-rejected' }, (payload) => {
         console.log('Call rejected notification:', payload);
-        toast.error('Call rejected', {
-          description: payload.message || 'The consultant is unavailable at the moment.'
-        });
+        
+        if (payload?.payload) {
+          toast.error('Call rejected', {
+            description: payload.payload.message || 'The consultant is unavailable at the moment.'
+          });
+        }
       })
-      .on('broadcast', { event: 'call-ended' }, ({ payload }) => {
+      .on('broadcast', { event: 'call-ended' }, (payload) => {
         console.log('Call ended notification:', payload);
-        toast.info('Call ended', {
-          description: payload.message || 'The call has ended.'
-        });
+        
+        if (payload?.payload) {
+          toast.info('Call ended', {
+            description: payload.payload.message || 'The call has ended.'
+          });
+        }
       })
       .subscribe((status) => {
         console.log(`Interaction channel ${channelName} subscription status:`, status);
@@ -139,7 +176,12 @@ export const CallNotificationProvider = ({ children }: CallNotificationProviderP
   };
 
   const handleAcceptCall = async () => {
-    if (!incomingCall) return;
+    if (!incomingCall) {
+      console.error('No incoming call to accept');
+      return;
+    }
+    
+    console.log('Accepting call:', incomingCall.interactionId);
     
     try {
       // Update interaction status to active
@@ -153,6 +195,8 @@ export const CallNotificationProvider = ({ children }: CallNotificationProviderP
       
       // Broadcast acceptance to the caller
       const channelName = `videocall:${incomingCall.interactionId}`;
+      console.log(`Broadcasting call acceptance through channel ${channelName}`);
+      
       await supabase.channel(channelName).send({
         type: 'broadcast',
         event: 'call-accepted',
@@ -163,8 +207,8 @@ export const CallNotificationProvider = ({ children }: CallNotificationProviderP
         }
       });
       
-      // Clear incoming call data and close drawer
-      setDrawerOpen(false);
+      // Clear incoming call data but drawer closing is handled by the drawer component
+      console.log('Call accepted successfully');
       
     } catch (error) {
       console.error('Error accepting call:', error);
@@ -173,7 +217,12 @@ export const CallNotificationProvider = ({ children }: CallNotificationProviderP
   };
 
   const handleRejectCall = async () => {
-    if (!incomingCall) return;
+    if (!incomingCall) {
+      console.error('No incoming call to reject');
+      return;
+    }
+    
+    console.log('Rejecting call:', incomingCall.interactionId);
     
     try {
       // Update interaction status to cancelled
@@ -188,6 +237,8 @@ export const CallNotificationProvider = ({ children }: CallNotificationProviderP
       
       // Broadcast rejection to the caller
       const channelName = `videocall:${incomingCall.interactionId}`;
+      console.log(`Broadcasting call rejection through channel ${channelName}`);
+      
       await supabase.channel(channelName).send({
         type: 'broadcast',
         event: 'call-rejected',
@@ -198,9 +249,9 @@ export const CallNotificationProvider = ({ children }: CallNotificationProviderP
         }
       });
       
-      // Clear incoming call data and close drawer
+      // Clear incoming call data
       setIncomingCall(null);
-      setDrawerOpen(false);
+      console.log('Call rejected successfully');
       
     } catch (error) {
       console.error('Error rejecting call:', error);

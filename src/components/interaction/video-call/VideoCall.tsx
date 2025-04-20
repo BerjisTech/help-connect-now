@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { DailyProvider, useDaily, useVideoTrack, useAudioTrack, useDailyEvent } from '@daily-co/daily-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -29,23 +28,18 @@ const DailyCall = ({
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
 
-  // We need to handle the participant differently as the hook API has changed
-  // Access local participant directly from callObject when it's available
   const localParticipant = callObject ? callObject.participants().local : null;
   
-  // Get the first remote participant
   const remoteParticipants = callObject ? 
     Object.values(callObject.participants()).filter(p => p.session_id !== localParticipant?.session_id) :
     [];
   const remoteParticipant = remoteParticipants.length > 0 ? remoteParticipants[0] : null;
 
-  // Get video and audio tracks with proper type checking
   const localVideo = localParticipant ? useVideoTrack(localParticipant.session_id) : null;
   const localAudio = localParticipant ? useAudioTrack(localParticipant.session_id) : null;
   const remoteVideo = remoteParticipant ? useVideoTrack(remoteParticipant.session_id) : null;
   const remoteAudio = remoteParticipant ? useAudioTrack(remoteParticipant.session_id) : null;
 
-  // Set up event handlers
   useDailyEvent('joined-meeting', () => {
     setIsConnecting(false);
     setConnectionState('connected');
@@ -77,14 +71,12 @@ const DailyCall = ({
     });
   });
 
-  // Set up local video element
   useEffect(() => {
     if (localVideo && localVideo.persistentTrack && localVideoRef.current) {
       localVideoRef.current.srcObject = new MediaStream([localVideo.persistentTrack]);
     }
   }, [localVideo]);
 
-  // Set up remote video element
   useEffect(() => {
     if (remoteVideo && remoteVideo.persistentTrack && remoteVideoRef.current) {
       const stream = new MediaStream();
@@ -96,7 +88,6 @@ const DailyCall = ({
     }
   }, [remoteVideo, remoteAudio]);
 
-  // Handle video toggle
   const toggleVideo = () => {
     if (callObject) {
       callObject.setLocalVideo(!isVideoEnabled);
@@ -104,7 +95,6 @@ const DailyCall = ({
     }
   };
 
-  // Handle audio toggle
   const toggleAudio = () => {
     if (callObject) {
       callObject.setLocalAudio(!isAudioEnabled);
@@ -112,7 +102,6 @@ const DailyCall = ({
     }
   };
 
-  // Try audio only mode
   const tryAudioOnly = () => {
     setIsAudioOnly(true);
     if (callObject) {
@@ -121,7 +110,6 @@ const DailyCall = ({
     }
   };
 
-  // End call
   const endCall = () => {
     if (callObject) {
       callObject.leave();
@@ -129,7 +117,6 @@ const DailyCall = ({
     onEndCall?.();
   };
 
-  // Determine local and remote media streams from tracks
   const localStream = localParticipant && (localVideo || localAudio) 
     ? new MediaStream([
         ...(localVideo?.persistentTrack ? [localVideo.persistentTrack] : []),
@@ -184,7 +171,6 @@ const DailyCall = ({
   );
 };
 
-// Main VideoCall component that creates the Daily context
 const VideoCall = ({ 
   interactionId, 
   participantId, 
@@ -195,6 +181,7 @@ const VideoCall = ({
   const [dailyToken, setDailyToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>('');
   const [connectionAttempt, setConnectionAttempt] = useState(0);
 
   useEffect(() => {
@@ -203,7 +190,6 @@ const VideoCall = ({
         console.log('Setting up Daily call for interaction:', interactionId);
         setIsLoading(true);
         
-        // Create or join room using our Supabase Edge Function
         const { data, error } = await supabase.functions.invoke('daily-room', {
           body: {
             roomName: `interaction-${interactionId}`,
@@ -213,27 +199,38 @@ const VideoCall = ({
 
         if (error) {
           console.error('Error from daily-room function:', error);
+          setErrorMessage(`Error from API: ${error.message || 'Unknown error'}`);
           throw error;
         }
 
         console.log('Received Daily room data:', data);
         
-        // Verify the data structure is correct
-        if (!data || !data.url || !data.token) {
-          console.error('Invalid response from daily-room function:', data);
-          throw new Error('Invalid response from video service');
+        if (!data) {
+          console.error('Empty response from daily-room function');
+          setErrorMessage('Empty response from video service');
+          throw new Error('Empty response from video service');
+        }
+        
+        if (!data.url) {
+          console.error('Missing URL in response from daily-room function:', data);
+          setErrorMessage('Missing URL in response from video service');
+          throw new Error('Missing URL in response from video service');
+        }
+        
+        if (!data.token) {
+          console.error('Missing token in response from daily-room function:', data);
+          setErrorMessage('Missing token in response from video service');
+          throw new Error('Missing token in response from video service');
         }
         
         setDailyUrl(data.url);
         setDailyToken(data.token);
         setIsLoading(false);
         
-        // Notify the other participant that you've joined
         if (joinAs === 'user') {
           const channelName = `general-calls`;
           console.log(`Sending call notification through channel ${channelName}`);
           
-          // Send call notification to all consultants
           await supabase.channel(channelName).send({
             type: 'broadcast',
             event: 'incoming-call',
@@ -249,13 +246,15 @@ const VideoCall = ({
         console.error('Error setting up call:', error);
         setHasError(true);
         setIsLoading(false);
-        toast.error('Failed to set up video call');
         
-        // If we've retried less than 3 times, try again after a delay
+        toast.error('Failed to set up video call', {
+          description: errorMessage || 'There was a problem connecting to the video service'
+        });
+        
         if (connectionAttempt < 3) {
           setTimeout(() => {
             setConnectionAttempt(prev => prev + 1);
-          }, 3000); // Wait 3 seconds before retrying
+          }, 3000);
         }
       }
     };
@@ -263,9 +262,8 @@ const VideoCall = ({
     if (interactionId) {
       setupCall();
     }
-  }, [interactionId, joinAs, connectionAttempt]);
+  }, [interactionId, joinAs, connectionAttempt, errorMessage]);
 
-  // If we're still loading after 20 seconds, show an error
   useEffect(() => {
     let timeoutId: number | undefined;
     
@@ -276,7 +274,7 @@ const VideoCall = ({
         toast.error('Connection timeout', {
           description: 'Video call is taking too long to connect'
         });
-      }, 20000); // 20 second timeout
+      }, 20000);
     }
     
     return () => {
@@ -290,6 +288,7 @@ const VideoCall = ({
     return (
       <div className="flex items-center justify-center h-full">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <p className="ml-2 text-sm text-gray-500">Connecting to video service...</p>
       </div>
     );
   }
@@ -303,13 +302,24 @@ const VideoCall = ({
           </svg>
         </div>
         <h3 className="text-lg font-medium mb-2">Failed to connect to video call</h3>
-        <p className="text-sm mb-4">There was a problem connecting to the video service.</p>
-        <button
-          onClick={() => window.location.reload()}
-          className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark"
-        >
-          Try Again
-        </button>
+        <p className="text-sm mb-2">There was a problem connecting to the video service.</p>
+        {errorMessage && (
+          <p className="text-xs text-red-500 mb-4 max-w-xs text-center">{errorMessage}</p>
+        )}
+        <div className="flex gap-2">
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark"
+          >
+            Try Again
+          </button>
+          <button
+            onClick={onEndCall}
+            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+          >
+            Cancel
+          </button>
+        </div>
       </div>
     );
   }

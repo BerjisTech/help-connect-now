@@ -38,12 +38,16 @@ const IncomingCallDrawer = ({
     setIsProcessing(true);
     
     try {
+      // Call the provided accept handler first
       onAccept();
       
-      // Close the drawer first
+      // Close the drawer immediately
       onOpenChange(false);
       
-      // Navigate to the interaction page
+      console.log(`Navigating to interaction ${callData.interactionId}`);
+      
+      // Navigate to the interaction page with a slight delay
+      // to ensure the drawer closes first
       setTimeout(() => {
         navigate(`/interaction?id=${callData.interactionId}&view=consultant`);
         setIsProcessing(false);
@@ -59,7 +63,11 @@ const IncomingCallDrawer = ({
     setIsProcessing(true);
     
     try {
+      // Call the provided reject handler
       onReject();
+      
+      // Close the drawer
+      onOpenChange(false);
       setIsProcessing(false);
     } catch (error) {
       console.error('Error rejecting call:', error);
