@@ -1,3 +1,4 @@
+
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
@@ -10,7 +11,16 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
   },
   plugins: [
-    react(),
+    react({
+      babel: {
+        plugins: [
+          // Disable the data-lov-id attributes in production
+          mode === 'production' ? 
+            ['babel-plugin-jsx-remove-data-test-id', { attributes: ['data-lov-id'] }] 
+            : null
+        ].filter(Boolean)
+      }
+    }),
     mode === 'development' &&
     componentTagger(),
   ].filter(Boolean),
