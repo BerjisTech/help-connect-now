@@ -2,6 +2,7 @@
 import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { InteractionData } from '../types';
+import { toast } from 'sonner';
 
 interface UseMessageActionsProps {
   interaction: InteractionData | null;
@@ -16,7 +17,10 @@ export const useMessageActions = ({
 }: UseMessageActionsProps) => {
   // Send message
   const sendMessage = useCallback(async (content: string) => {
-    if (!interaction) return;
+    if (!interaction) {
+      toast.error("No active interaction found");
+      return;
+    }
     
     try {
       // Get current user
@@ -46,6 +50,9 @@ export const useMessageActions = ({
           // Update local state
           setInteraction(prev => prev ? { ...prev, anonymous_seeker_id: anonymousId } : null);
         }
+      } else {
+        toast.error("Unable to identify sender");
+        return;
       }
       
       console.log('Sending message with data:', messageData);
@@ -57,6 +64,7 @@ export const useMessageActions = ({
         
       if (error) {
         console.error('Error sending message:', error);
+        toast.error(`Failed to send message: ${error.message}`);
         throw error;
       }
 
